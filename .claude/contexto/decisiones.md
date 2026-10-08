@@ -15,3 +15,9 @@
 | 2026-10-08 | `main` es la rama base; cada trabajo sale en su propia rama | Indicación del usuario |
 | 2026-10-08 | Nombres comunes de puentes en `scripts/datos/puentes.js`, por id de OSM | OSM usa otros nombres; manda el conocimiento de campo |
 | 2026-10-08 | El pare se guarda por acceso (`accesosConPare`), no solo por cruce | Un pare detiene a quien llega por esa vía, no a todo el cruce |
+| 2026-10-08 | Parámetros IDM por tipo de vehículo en `src/sim/vehiculos.js` | Supuestos razonables; se documentan en "Cómo funciona" |
+| 2026-10-08 | Estado de la vía multiplica la velocidad deseada (huecos ×0,5, regular ×0,8, destapado ×0,6, adoquín ×0,85) | Es lo que hace que los carros "descubran" una vía arreglada |
+| 2026-10-08 | Volúmenes base: 1000 locales, 300 de paso, 120 pesados, 20 buses nacionales, 10 de paso y 30 intermunicipales por hora | Supuestos sin aforos; sirven para comparar escenarios |
+| 2026-10-08 | Vehículo quieto más de 180 s se retira y cuenta como bloqueo | Equivale al teleport de SUMO; métrica de colapso |
+| 2026-10-08 | Salidas del municipio declaradas a mano en `src/escenarios/zonas.js` | La detección automática daba 40 caminos rurales sin nombre |
+| 2026-10-08 | Restricción de pesados de paso se implementa en la etapa 3 | Va con "terminar la Variante" |

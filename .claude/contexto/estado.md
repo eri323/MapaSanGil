@@ -1,17 +1,22 @@
 # Estado del proyecto
 
-**Etapa actual:** 1 de 5 terminada — sigue la etapa 2 (motor), 18 – 31 oct 2026
-**Plan activo:** ninguno; falta escribir el de la etapa 2
+**Etapa actual:** 2 de 5 terminada — sigue la etapa 3 (editor), 1 – 9 nov 2026
+**Plan activo:** ninguno; falta escribir el de la etapa 3
 **Rama base:** `main` (GitHub: eri323/MapaSanGil); trabajo en ramas que salen de `main`
 
 ## Hecho
+- Etapa 2 completa (rama `etapa-2`): motor IDM + MOBIL + cruces (pare por acceso, prioridad,
+  glorieta, derecha, cortesía) + rutas con tiempos medidos + demanda por flujos, en Web Worker;
+  vehículos en el mapa, reloj, controles y métricas en vivo. 15 min de hora pico se simulan en
+  3,3 s. Cerrar el Rojas Pinilla sube la demora media de 62 s a 85 s (+37 %).
 - Spec aprobado.
 - Etapa 1 completa: red de San Gil descargada de OSM (1620 cruces, 2155 vías,
   1,1 MB), convertida a grafo y dibujada por tipo de vía, con flechas de
   sentido, puentes, pares y fichas de solo lectura.
 
 ## Sigue
-- Escribir el plan de la etapa 2 (motor: vehículos, IDM, cruces, rutas, demanda).
+- Escribir el plan de la etapa 3 (editor de vías y cruces, terminar la Variante, restricción
+  de pesados de paso, vías y puentes nuevos).
 
 ## Revisión de la etapa 1: resuelta (rama fix/hallazgos-etapa-1)
 - Velocidad 0 de OSM se ignora; validación de ids únicos, longitud, velocidad, carriles y
@@ -38,4 +43,5 @@
 - El área descargada incluye vías rurales (251 km de doble sentido).
 
 ## Bloqueos / pendientes del usuario
+- Confirmar la ubicación de la plaza de mercado (`src/escenarios/zonas.js`) y si falta alguna salida (¿Charalá?).
 - Lista de campo: vías con huecos, destapadas, sentidos únicos y pares reales.

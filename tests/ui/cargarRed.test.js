@@ -53,3 +53,12 @@ describe('URL de la red', () => {
     expect(urlRed('/MapaSanGil/')).toBe('/MapaSanGil/data/red-sangil.json');
   });
 });
+
+describe('cargarDatosRed', () => {
+  it('devuelve los datos crudos ya validados, listos para enviar al worker', async () => {
+    const { cargarDatosRed } = await import('../../src/ui/datos/cargarRed.js');
+    const datos = await cargarDatosRed(respuesta({ json: async () => redMinima }));
+    expect(datos).toBe(redMinima);
+    await expect(cargarDatosRed(respuesta({ json: async () => ({ version: 1 }) }))).rejects.toThrow(/Red inválida/);
+  });
+});
