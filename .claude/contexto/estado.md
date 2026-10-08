@@ -43,5 +43,4 @@
 - El área descargada incluye vías rurales (251 km de doble sentido).
 
 ## Bloqueos / pendientes del usuario
-- Confirmar la ubicación de la plaza de mercado (`src/escenarios/zonas.js`) y si falta alguna salida (¿Charalá?).
 - Lista de campo: vías con huecos, destapadas, sentidos únicos y pares reales.

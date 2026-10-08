@@ -14,3 +14,4 @@
 - Nombres de los 5 puentes confirmados por el usuario; spec corregido.
 - Etapa 2 completa: motor IDM + MOBIL + cruces + rutas + demanda en Web Worker; vehículos en el
   mapa. 158 pruebas. Cerrar el Rojas Pinilla: demora 62 s → 85 s.
+- Datos de campo: plaza de mercado, salida a Charalá, Calle 12 (Cra 10 → Cra 11) habilitada.
