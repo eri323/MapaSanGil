@@ -98,3 +98,82 @@ describe('osmARed', () => {
     expect(vias.some((v) => v.osmId === 700)).toBe(false);
   });
 });
+
+describe('osmARed · casos de la revisión', () => {
+  it('una calle en lazo unida solo por su nodo de cierre se parte en dos y no desaparece', () => {
+    const { vias, nodos } = osmARed({
+      elements: [
+        nodo(1, -73.137, 6.555), nodo(2, -73.136, 6.555),
+        nodo(31, -73.1350, 6.5550), nodo(32, -73.1345, 6.5555), nodo(33, -73.1350, 6.5560),
+        way(100, [1, 2, 31]),
+        way(800, [31, 32, 33, 31]),
+      ],
+    });
+    const lazo = vias.filter((v) => v.osmId === 800);
+    expect(lazo).toHaveLength(2);
+    expect(lazo.every((v) => v.desde !== v.hasta)).toBe(true);
+    expect(nodos.some((n) => n.id === 'n32' || n.id === 'n33')).toBe(true);
+  });
+
+  it('una piruleta [A,B,C,B,D] conserva el tramo B-C-B partido en C', () => {
+    const { vias } = osmARed({
+      elements: [
+        nodo(41, -73.137, 6.555), nodo(42, -73.136, 6.555), nodo(43, -73.136, 6.556),
+        nodo(44, -73.135, 6.555),
+        way(900, [41, 42, 43, 42, 44]),
+      ],
+    });
+    expect(vias.filter((v) => v.osmId === 900)).toHaveLength(4);
+    expect(vias.every((v) => v.desde !== v.hasta)).toBe(true);
+  });
+
+  it('un tramo de menos de medio metro une sus dos nodos en vez de cortar la red', () => {
+    const { vias, nodos, descartadas } = osmARed({
+      elements: [
+        nodo(1, -73.137, 6.555), nodo(2, -73.136, 6.555),
+        nodo(3, -73.136000001, 6.555), nodo(4, -73.135, 6.555),
+        way(100, [1, 2]),
+        way(150, [2, 3]),
+        way(200, [3, 4]),
+      ],
+    });
+    expect(descartadas).toBe(0);
+    expect(vias).toHaveLength(2);
+    expect(nodos).toHaveLength(3);
+    const ids = new Set(nodos.map((n) => n.id));
+    for (const v of vias) {
+      expect(ids.has(v.desde)).toBe(true);
+      expect(ids.has(v.hasta)).toBe(true);
+    }
+  });
+
+  it('el pare en una vía de un sentido nunca marca el cruce de salida, aunque esté más cerca', () => {
+    // vía de un sentido 4 -> 2; la señal está a 10 m de 4 (salida) y a 100 m de 2 (llegada)
+    const conPare = cruz([nodo(10, -73.136, 6.55591, { highway: 'stop' })]);
+    conPare.elements.find((e) => e.id === 200).nodes = [4, 10, 2, 5];
+    const { nodos, pares } = osmARed(conPare);
+    expect(porId(nodos).n4.control).not.toBe('pare');
+    expect(pares).toBe(0);
+  });
+
+  it('el pare respeta direction=backward en vías de doble sentido', () => {
+    // señal a 22 m de n2, pero direction=backward: aplica a quien va hacia n1
+    const conPare = cruz([nodo(11, -73.1362, 6.555, { highway: 'stop', direction: 'backward' })]);
+    conPare.elements.find((e) => e.id === 100).nodes = [1, 11, 2, 3];
+    const n = porId(osmARed(conPare).nodos);
+    expect(n.n2.control).not.toBe('pare');
+  });
+
+  it('el pare queda registrado por acceso: solo la vía donde está la señal', () => {
+    const conPare = cruz([nodo(10, -73.136, 6.5552, { highway: 'stop' })]);
+    conPare.elements.find((e) => e.id === 200).nodes = [4, 10, 2, 5];
+    const n = porId(osmARed(conPare).nodos);
+    expect(n.n2.accesosConPare).toEqual(['v200_0']);
+  });
+
+  it('pone el nombre común a los puentes conocidos', () => {
+    const { vias } = osmARed(cruz(), { nombresPuentes: { 100: 'Puente de prueba' } });
+    expect(vias.filter((v) => v.osmId === 100).every((v) => v.nombrePuente === 'Puente de prueba')).toBe(true);
+    expect(vias.find((v) => v.osmId === 200).nombrePuente).toBeUndefined();
+  });
+});
