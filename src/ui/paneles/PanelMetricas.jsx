@@ -9,8 +9,10 @@ export default function PanelMetricas({ resumen, onSeleccionarVia }) {
     ['Viajes completados', resumen.viajesCompletados],
     ['Tiempo medio de viaje', formatearDuracion(resumen.tiempoMedio)],
     ['Demora media', formatearDuracion(resumen.demoraMedia)],
+    ['Demora (últimos 10 min)', formatearDuracion(resumen.demoraReciente)],
     ['Bloqueos', resumen.bloqueos],
     ['Viajes imposibles', resumen.viajesImposibles],
+    ['Retirados por cambios', resumen.retirados],
   ];
 
   return (

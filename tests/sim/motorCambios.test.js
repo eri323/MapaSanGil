@@ -94,3 +94,14 @@ describe('motor · red en caliente', () => {
     expect(veh.ruta).toEqual(['ad>']);
   });
 });
+
+describe('motor · demora reciente', () => {
+  it('el resumen trae la demora de los últimos 10 minutos', () => {
+    const motor = sinDemanda(crearRed(datosRedLinea()));
+    motor.agregarVehiculo(carro('n0', 'n3'));
+    motor.avanzar(200);
+    const r = motor.resumen();
+    expect(r.viajesCompletados).toBe(1);
+    expect(r.demoraReciente).toBeCloseTo(r.demoraMedia, 6);
+  });
+});

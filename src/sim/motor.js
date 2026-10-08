@@ -293,7 +293,7 @@ export function crearMotor(redInicial, opciones = {}) {
 
           if (veh.i === veh.ruta.length - 1) {
             vivos.delete(veh);
-            metricas.viajeCompletado({ tipo: veh.tipo, duracion: instante - veh.tSalida, tiempoLibre: veh.tiempoLibre });
+            metricas.viajeCompletado({ tipo: veh.tipo, duracion: instante - veh.tSalida, tiempoLibre: veh.tiempoLibre, t: instante });
             alTerminar?.(veh, instante);
             continue;
           }
@@ -571,7 +571,7 @@ export function crearMotor(redInicial, opciones = {}) {
         });
       return {
         t,
-        ...metricas.resumen(),
+        ...metricas.resumen(t),
         enRed: vivos.size,
         enCola: contarEnCola(),
         pendientes: pendientes.length,

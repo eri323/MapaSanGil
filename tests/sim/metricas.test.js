@@ -5,7 +5,7 @@ describe('crearMetricas', () => {
   it('sin viajes todo es cero', () => {
     expect(crearMetricas().resumen()).toEqual({
       viajesCompletados: 0, viajesImposibles: 0, bloqueos: 0, retirados: 0,
-      tiempoMedio: 0, demoraMedia: 0, demoraTotalVh: 0, porTipo: {},
+      tiempoMedio: 0, demoraMedia: 0, demoraTotalVh: 0, demoraReciente: 0, tiempoReciente: 0, porTipo: {},
     });
   });
 
@@ -44,5 +44,24 @@ describe('crearMetricas · retirados', () => {
     const m = crearMetricas();
     m.retirado();
     expect(m.resumen().retirados).toBe(1);
+  });
+});
+
+describe('crearMetricas · últimos 10 minutos', () => {
+  it('solo cuenta los viajes terminados en la ventana', () => {
+    const m = crearMetricas();
+    m.viajeCompletado({ tipo: 'carro', duracion: 200, tiempoLibre: 100, t: 0 });
+    m.viajeCompletado({ tipo: 'carro', duracion: 70, tiempoLibre: 60, t: 700 });
+    const r = m.resumen(800);
+    expect(r.demoraReciente).toBe(10);
+    expect(r.tiempoReciente).toBe(70);
+    expect(r.demoraMedia).toBe(55);
+  });
+
+  it('sin tiempo actual promedia todos los viajes', () => {
+    const m = crearMetricas();
+    m.viajeCompletado({ tipo: 'carro', duracion: 200, tiempoLibre: 100, t: 0 });
+    m.viajeCompletado({ tipo: 'carro', duracion: 70, tiempoLibre: 60, t: 700 });
+    expect(m.resumen().demoraReciente).toBe(55);
   });
 });
