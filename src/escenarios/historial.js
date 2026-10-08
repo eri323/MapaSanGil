@@ -58,3 +58,9 @@ export function agregarValidado(base, h, entrada) {
   crearRed(aplicarCambios(base, activos(nuevo)));
   return nuevo;
 }
+
+// Historial con todas las entradas activas (para cargar un escenario en el editor).
+export function historialDesdeEntradas(base, entradas) {
+  crearRed(aplicarCambios(base, entradas.map((e) => e.cambio)));
+  return { entradas: [...entradas], indice: entradas.length };
+}

@@ -51,3 +51,14 @@ describe('estilos del editor', () => {
     for (const tipo of ['nodo', 'via', 'libre']) expect(COLOR_AJUSTE[tipo]).toHaveLength(3);
   });
 });
+
+import { colorDiferencia } from '../../src/ui/mapa/estilosVia.js';
+
+describe('colorDiferencia', () => {
+  it('verde si mejoró, rojo si empeoró, gris si casi igual o sin datos', () => {
+    expect(colorDiferencia(0.3)).toEqual([46, 160, 67]);
+    expect(colorDiferencia(-0.3)).toEqual([214, 69, 65]);
+    expect(colorDiferencia(0.02)).toEqual([190, 196, 204]);
+    expect(colorDiferencia(undefined)).toEqual([215, 219, 224]);
+  });
+});

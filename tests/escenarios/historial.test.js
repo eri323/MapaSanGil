@@ -65,3 +65,19 @@ describe('historial validado contra la red', () => {
     expect(() => agregarValidado(base, h, cerrar('zzz'))).toThrow(/no existe/);
   });
 });
+
+import { historialDesdeEntradas } from '../../src/escenarios/historial.js';
+
+describe('historialDesdeEntradas', () => {
+  const cerrar = (via) => ({ cambio: { tipo: 'via', viaId: via, propiedades: { abierta: false } }, descripcion: via });
+
+  it('arma un historial con todas las entradas activas', () => {
+    const h = historialDesdeEntradas(datosRedLinea(), [cerrar('t0'), cerrar('t1')]);
+    expect(h.indice).toBe(2);
+    expect(activos(h)).toHaveLength(2);
+  });
+
+  it('lanza si alguna entrada no aplica', () => {
+    expect(() => historialDesdeEntradas(datosRedLinea(), [cerrar('zzz')])).toThrow(/no existe/);
+  });
+});

@@ -31,3 +31,28 @@ describe('aplicarCorrecciones', () => {
     expect(aplicarCorrecciones(base()).elements).toEqual(base().elements);
   });
 });
+
+import { aplicarEstadosCampo } from '../../scripts/lib/correcciones.js';
+
+describe('aplicarEstadosCampo', () => {
+  const vias = [
+    { id: 'a', nombre: 'Carrera 1', estado: 'bueno', superficie: 'pavimento' },
+    { id: 'b', nombre: 'Calle 12', estado: 'bueno', superficie: 'pavimento' },
+  ];
+
+  it('cambia estado y superficie de las vías nombradas, sin tocar las demás ni los datos originales', () => {
+    const r = aplicarEstadosCampo(vias, [{ nombres: ['Carrera 1'], estado: 'huecos', superficie: 'destapado', nota: 'x' }]);
+    expect(r[0]).toMatchObject({ estado: 'huecos', superficie: 'destapado' });
+    expect(r[1]).toBe(vias[1]);
+    expect(vias[0].estado).toBe('bueno');
+  });
+
+  it('una regla puede cambiar solo el estado', () => {
+    const r = aplicarEstadosCampo(vias, [{ nombres: ['Calle 12'], estado: 'regular', nota: 'x' }]);
+    expect(r[1]).toMatchObject({ estado: 'regular', superficie: 'pavimento' });
+  });
+
+  it('sin reglas devuelve las mismas vías', () => {
+    expect(aplicarEstadosCampo(vias)).toEqual(vias);
+  });
+});

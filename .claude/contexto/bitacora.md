@@ -17,3 +17,5 @@
 - Datos de campo: plaza de mercado, salida a Charalá, Calle 12 (Cra 10 → Cra 11) habilitada.
 - Etapa 3 completa: editor (vías, cruces, vías y puentes nuevos, Variante, restricción, doble
   calzada, deshacer) aplicado en vivo. 234 pruebas.
+- Etapa 4 completa: escenarios, comparador (worker aparte, mapa de diferencias) y modo
+  historia con comparación controlada. La historia se cumple: 67 → 90 → 82 → 57 → 57 s.

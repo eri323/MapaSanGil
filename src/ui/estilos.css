@@ -151,3 +151,55 @@ button.ancho { width: 100%; }
 .modal .acciones { justify-content: flex-end; margin-top: 14px; }
 .campos label.opcion { display: flex; align-items: center; gap: 6px; }
 .campos label.opcion > span { color: inherit; }
+
+/* --- Etapa 4: escenarios, comparador e historia --- */
+
+.pestanas {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px;
+  background: var(--panel); border: 1px solid var(--borde); border-radius: 8px; padding: 3px;
+}
+.pestanas button { border: none; font-size: 12px; padding: 6px 4px; }
+
+.lista-escenarios { list-style: none; margin: 6px 0; padding: 0; display: grid; gap: 6px; }
+.lista-escenarios li {
+  display: flex; justify-content: space-between; gap: 8px; align-items: center;
+  border: 1px solid var(--borde); border-radius: 6px; padding: 6px 8px;
+}
+.lista-escenarios li > div:first-child { display: grid; gap: 2px; font-size: 13px; min-width: 0; }
+.lista-escenarios li span { color: var(--tenue); font-size: 12px; }
+.lista-escenarios .acciones { margin: 0; flex-shrink: 0; }
+.lista-escenarios .acciones button { padding: 4px 8px; }
+
+.comparador .referencia { color: var(--tenue); font-size: 12px; }
+.progreso { display: grid; gap: 6px; font-size: 13px; }
+.progreso progress { width: 100%; }
+
+.resultados {
+  position: absolute; left: 304px; right: 304px; bottom: 32px; z-index: 2;
+  max-height: 55%; overflow-y: auto;
+}
+.resultados header { display: flex; justify-content: space-between; align-items: start; }
+.resultados header button { border: none; background: none; font-size: 20px; color: var(--tenue); cursor: pointer; }
+.tabla-scroll { overflow-x: auto; }
+.resultados table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.resultados th, .resultados td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--borde); vertical-align: top; }
+.resultados td small { color: var(--tenue); }
+.resultados .variacion { display: block; font-weight: 600; }
+.grafica { width: 100%; }
+
+.barra-historia {
+  position: absolute; left: 50%; transform: translateX(-50%); top: 12px; z-index: 3;
+  width: min(720px, calc(100% - 24px)); display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px;
+  background: var(--panel); border: 1px solid var(--borde); border-radius: 10px;
+  padding: 12px 14px; box-shadow: 0 6px 20px rgb(0 0 0 / 0.15);
+}
+.historia-paso { font-size: 12px; color: var(--tenue); }
+.barra-historia h2 { margin: 2px 0 4px; font-size: 18px; }
+.barra-historia p { margin: 0 0 6px; font-size: 13px; }
+.historia-grafica span { font-size: 12px; color: var(--tenue); }
+
+@media (max-width: 900px) {
+  .resultados { left: 12px; right: 12px; }
+  .barra-historia { grid-template-columns: 1fr; }
+  .historia-grafica { display: none; }
+}

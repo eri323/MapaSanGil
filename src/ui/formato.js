@@ -15,3 +15,26 @@ export function formatearDuracion(segundos) {
   const resto = s % 60;
   return resto ? `${minutos} min ${resto} s` : `${minutos} min`;
 }
+
+export const ETIQUETA_METRICA = {
+  viajesCompletados: 'Viajes completados',
+  tiempoMedio: 'Tiempo medio de viaje',
+  demoraMedia: 'Demora media',
+  demoraTotalVh: 'Demora total',
+  bloqueos: 'Bloqueos',
+  viajesImposibles: 'Viajes imposibles',
+};
+
+const DURACIONES = new Set(['tiempoMedio', 'demoraMedia']);
+
+export function formatearMetrica(clave, valor) {
+  if (DURACIONES.has(clave)) return formatearDuracion(valor);
+  if (clave === 'demoraTotalVh') return `${valor.toFixed(1).replace('.', ',')} veh·h`;
+  return String(Math.round(valor));
+}
+
+export function formatearVariacion(v) {
+  if (v === null || !Number.isFinite(v)) return '—';
+  const pct = Math.round(v * 100);
+  return `${pct >= 0 ? '+' : '−'}${Math.abs(pct)} %`;
+}

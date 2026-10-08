@@ -2,6 +2,7 @@
 // (04_analyze.py): viajes, tiempo de viaje, demora y bloqueos.
 
 const MAXIMO_MUESTRAS = 7200; // dos horas a una muestra por segundo
+export const VENTANA_RECIENTE = 600; // s: "últimos 10 minutos"
 
 export function crearMetricas() {
   let completados = 0;
@@ -12,13 +13,16 @@ export function crearMetricas() {
   let sumaDemora = 0;
   const porTipo = {};
   const serie = [];
+  const recientes = []; // { t, duracion, demora }
 
   return {
-    viajeCompletado({ tipo, duracion, tiempoLibre }) {
+    viajeCompletado({ tipo, duracion, tiempoLibre, t = 0 }) {
+      const demora = Math.max(0, duracion - tiempoLibre);
       completados += 1;
       sumaDuracion += duracion;
-      sumaDemora += Math.max(0, duracion - tiempoLibre);
+      sumaDemora += demora;
       porTipo[tipo] = (porTipo[tipo] ?? 0) + 1;
+      recientes.push({ t, duracion, demora });
     },
     viajeImposible() { imposibles += 1; },
     bloqueo() { bloqueos += 1; },
@@ -27,7 +31,14 @@ export function crearMetricas() {
       serie.push(m);
       if (serie.length > MAXIMO_MUESTRAS) serie.shift();
     },
-    resumen() {
+    // Con el tiempo actual, lo "reciente" son los viajes de los últimos 10 min;
+    // sin él, todos.
+    resumen(tActual) {
+      if (Number.isFinite(tActual)) {
+        while (recientes.length && recientes[0].t < tActual - VENTANA_RECIENTE) recientes.shift();
+      }
+      const n = recientes.length;
+      const promedio = (campo) => (n ? recientes.reduce((s, x) => s + x[campo], 0) / n : 0);
       return {
         viajesCompletados: completados,
         viajesImposibles: imposibles,
@@ -36,6 +47,8 @@ export function crearMetricas() {
         tiempoMedio: completados ? sumaDuracion / completados : 0,
         demoraMedia: completados ? sumaDemora / completados : 0,
         demoraTotalVh: sumaDemora / 3600,
+        demoraReciente: promedio('demora'),
+        tiempoReciente: promedio('duracion'),
         porTipo: { ...porTipo },
       };
     },

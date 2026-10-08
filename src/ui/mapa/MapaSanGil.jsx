@@ -6,7 +6,7 @@ import MapaBase from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   colorVia, anchoVia, flechasDeVias, COLOR_PUENTE, COLOR_PARE, COLOR_SELECCION,
-  COLOR_CERRADA, COLOR_SEMAFORO, COLOR_CRUCE, COLOR_DIBUJO, COLOR_AJUSTE,
+  COLOR_CERRADA, COLOR_SEMAFORO, COLOR_CRUCE, COLOR_DIBUJO, COLOR_AJUSTE, colorDiferencia,
 } from './estilosVia.js';
 import { COLOR_POR_INDICE, RADIO_POR_INDICE, colorCongestion } from './estilosVehiculo.js';
 import { circulo } from './geometriaUi.js';
@@ -17,7 +17,7 @@ const VISTA_INICIAL = { longitude: -73.134, latitude: 6.555, zoom: 14.5, pitch: 
 const PUNTEADO = new PathStyleExtension({ dash: true });
 
 export default function MapaSanGil({
-  red, vehiculos, colorPor, congestion, seleccion, onSeleccionar, modo, dibujo, onClicMapa, casco,
+  red, vehiculos, colorPor, congestion, diferencias, seleccion, onSeleccionar, modo, dibujo, onClicMapa, casco,
 }) {
   const vias = useMemo(() => [...red.vias.values()], [red]);
   const puentes = useMemo(() => vias.filter((v) => v.esPuente), [vias]);
@@ -47,6 +47,7 @@ export default function MapaSanGil({
   const colorDeVia = (v) => {
     if (seleccionada('via', v.id)) return COLOR_SELECCION;
     if (!v.abierta) return COLOR_CERRADA;
+    if (colorPor === 'diferencia') return colorDiferencia(diferencias?.get(v.id));
     return colorPor === 'congestion' ? colorCongestion(congestion.get(v.id)) : colorVia(v);
   };
 
@@ -75,7 +76,7 @@ export default function MapaSanGil({
       getDashArray: (v) => (v.enConstruccion || !v.abierta ? [4, 3] : [0, 0]),
       dashJustified: true,
       extensions: [PUNTEADO],
-      updateTriggers: { getColor: [seleccion, colorPor, congestion] },
+      updateTriggers: { getColor: [seleccion, colorPor, congestion, diferencias] },
     }),
     new PathLayer({
       id: 'doble-calzada', data: doblesCalzadas, getPath: (v) => v.geometria,

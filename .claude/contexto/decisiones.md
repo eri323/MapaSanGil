@@ -30,3 +30,9 @@
 | 2026-10-08 | La Variante de OSM no conecta: el usuario traza los tramos que faltan con la herramienta de vía nueva | OSM solo trae 2 km con extremos sueltos; no hay trazado georreferenciado confiable |
 | 2026-10-08 | Restricción de pesados: flujos pesado y busPaso solo por Avenida/Variante fuera de un casco de 1,3 km; si no hay ruta, pasan por el centro | Spec §5; evita viajes imposibles mientras la Variante no conecte |
 | 2026-10-08 | Doble calzada: 2 carriles por sentido en toda la Avenida o toda la Variante | Indicación del usuario |
+| 2026-10-08 | Escenario = cambios + demanda + restricción; precargados construidos desde la red base | Reproducibles y comparables |
+| 2026-10-08 | Carrera 1ª destapada y con huecos como SUPUESTO de campo | La base Python preguntaba si "pavimentada alcanza como vía alterna"; OSM casi no trae estado |
+| 2026-10-08 | Variante precargada: une el extremo occidental con la Avenida hacia Socorro y el oriental con la Avenida hacia Bucaramanga, en cruces de ida y vuelta, rodeando el casco | Trazado aproximado; el tramo de OSM está todo al noroccidente |
+| 2026-10-08 | Puente propuesto: ≤160 m entre orillas, ≥300 m de los puentes existentes, el más cercano al centro | Ubicación aproximada para la historia; el usuario puede cambiarla |
+| 2026-10-08 | Comparador en un worker aparte, misma duración y semillas 1..N, promedio y rango | Spec §7: "¿y si fue suerte?" sin congelar la simulación en vivo |
+| 2026-10-08 | La gráfica de la historia usa una comparación controlada de los pasos, no la demora en vivo | En vivo la demora sube con el tiempo (red llenándose, hora pico) y no muestra el efecto de cada cambio |

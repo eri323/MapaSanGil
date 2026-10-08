@@ -32,6 +32,20 @@ no para predecir tiempos exactos.
   Con la restricción activa, los pesados de paso dejan de cruzar el centro.
 - **Deshacer / Rehacer** con los botones o Ctrl+Z / Ctrl+Y. Los cambios se guardan en el navegador.
 
+### Escenarios, comparador e historia
+
+- **Escenarios**: guarda el estado actual con un nombre, cárgalo después, descárgalo como
+  archivo o importa uno. Hay escenarios precargados (temporada alta, obra en el Rojas
+  Pinilla, Variante terminada, puente nuevo propuesto).
+- **Comparar**: escoge dos o más escenarios; corren sin dibujar con la misma duración y
+  varias semillas. Ves promedio y rango de cada métrica, la gráfica de demora y un mapa de
+  dónde mejoró o empeoró el tráfico.
+- **Historia**: la demo de clase paso a paso. Avanza con ▶ o las flechas del teclado; cada
+  paso aplica sus cambios sobre la simulación en curso. La gráfica muestra la comparación
+  controlada de los pasos (30 min simulados, 2 semillas), calculada al empezar.
+
+La Variante y el puente propuesto de los precargados usan trazados aproximados.
+
 ## Otros comandos
 
 - `npm test` — pruebas del motor de simulación

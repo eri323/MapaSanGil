@@ -3,7 +3,7 @@ import { aplicarCambio, aplicarCambios } from '../../escenarios/cambios.js';
 import { evaluarImpacto } from '../../escenarios/impacto.js';
 import {
   HISTORIAL_VACIO, agregar, deshacer as deshacerH, rehacer as rehacerH,
-  activos, puedeDeshacer, puedeRehacer, serializar, recuperarHistorial, agregarValidado,
+  activos, puedeDeshacer, puedeRehacer, serializar, recuperarHistorial, agregarValidado, historialDesdeEntradas,
 } from '../../escenarios/historial.js';
 import { ZONAS, SALIDAS } from '../../escenarios/zonas.js';
 
@@ -76,6 +76,16 @@ export function useEdicion(base) {
     puedeDeshacer: puedeDeshacer(historial),
     puedeRehacer: puedeRehacer(historial),
     descartarTodo: () => setHistorial(HISTORIAL_VACIO),
+    cargar: (entradas) => {
+      try {
+        setHistorial(historialDesdeEntradas(base, entradas));
+        setError(null);
+        return true;
+      } catch (err) {
+        setError(`No se pudo cargar el escenario: ${err.message}`);
+        return false;
+      }
+    },
     error,
     mostrarError: setError,
     limpiarError: () => setError(null),

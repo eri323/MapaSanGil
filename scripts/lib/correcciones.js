@@ -18,3 +18,16 @@ export function aplicarCorrecciones(overpass, { viasAgregadas = [] } = {}) {
     ],
   };
 }
+
+// Estado y superficie de las vías según trabajo de campo (OSM casi nunca los trae).
+export function aplicarEstadosCampo(vias, reglas = []) {
+  return vias.map((v) => {
+    const regla = reglas.find((r) => r.nombres.includes(v.nombre));
+    if (!regla) return v;
+    return {
+      ...v,
+      ...(regla.estado && { estado: regla.estado }),
+      ...(regla.superficie && { superficie: regla.superficie }),
+    };
+  });
+}
