@@ -1,0 +1,10 @@
+node_modules/
+dist/
+scripts/cache/
+.vercel/
+.superpowers/
+*.log
+.DS_Store
+python-original/data/
+python-original/resultados/
+python-original/.venv/

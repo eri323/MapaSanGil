@@ -1,0 +1,6 @@
+osmnx>=1.9
+networkx>=3.0
+geopandas>=0.14
+shapely>=2.0
+pandas>=2.0
+matplotlib>=3.7
