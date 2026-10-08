@@ -15,6 +15,16 @@
 - Escribir el plan de la etapa 2 (motor: vehículos, IDM, cruces, rutas, demanda).
 - Revisar con el usuario qué vías salieron mal clasificadas en OSM.
 
+## Pendientes de la revisión de la etapa 1 (incluir en el plan de la etapa 2)
+- `maxspeed="0"` da velocidad 0 (`scripts/lib/clasificarVia.js`): devolver null si n ≤ 0.
+- `validarRed` no rechaza ids duplicados, `longitud ≤ 0`, `velocidadMax ≤ 0` ni `desde === hasta`.
+- El control de cruce es por nodo; el motor necesita control por acceso y un índice `entrantes` en `crearRed`.
+- El pare se asigna al extremo más cercano sin mirar el sentido de la vía.
+- La URL `/data/red-sangil.json` es absoluta; usar `import.meta.env.BASE_URL`.
+- Casos que hoy no aparecen en los datos: lazos unidos solo por su nodo de cierre se descartan;
+  tramos < 0,5 m se descartan en vez de unir nodos; glorieta con `oneway=no` se fuerza a un sentido;
+  `construir-red` no reporta alcanzabilidad dirigida.
+
 ## Hallazgos de la red real (para confirmar con el usuario)
 - La Variante SÍ está en OSM como obra: way 1271241090, unos 2 km.
 - El puente Rojas Pinilla no aparece con ese nombre. Candidato: puente de
