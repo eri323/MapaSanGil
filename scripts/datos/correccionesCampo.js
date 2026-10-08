@@ -11,3 +11,13 @@ export const VIAS_AGREGADAS = [
     tags: { highway: 'residential', name: 'Calle 12', oneway: 'yes', surface: 'concrete' },
   },
 ];
+
+// Estado de las vías por nombre. Lo marcado "SUPUESTO" está por confirmar con el usuario.
+export const ESTADOS_CAMPO = [
+  {
+    nombres: ['Carrera 1', 'Carrera 1A'],
+    estado: 'huecos',
+    superficie: 'destapado',
+    nota: 'SUPUESTO: la base Python preguntaba si "la carrera 1ª pavimentada alcanza como vía alterna".',
+  },
+];

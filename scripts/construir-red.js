@@ -13,8 +13,8 @@ import { osmARed } from './lib/osmARed.js';
 import { validarRed, crearRed, componentePrincipal } from '../src/sim/red.js';
 import { ETIQUETA_TIPO } from '../src/sim/tipos.js';
 import { NOMBRES_PUENTES } from './datos/puentes.js';
-import { aplicarCorrecciones } from './lib/correcciones.js';
-import { VIAS_AGREGADAS } from './datos/correccionesCampo.js';
+import { aplicarCorrecciones, aplicarEstadosCampo } from './lib/correcciones.js';
+import { VIAS_AGREGADAS, ESTADOS_CAMPO } from './datos/correccionesCampo.js';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CACHE = join(RAIZ, 'scripts', 'cache', 'overpass-sangil.json');
@@ -118,6 +118,7 @@ async function main() {
   const fresca = process.argv.includes('--fresca');
   const overpass = aplicarCorrecciones(await obtenerOverpass(fresca), { viasAgregadas: VIAS_AGREGADAS });
   const resultado = osmARed(overpass, { nombresPuentes: NOMBRES_PUENTES });
+  resultado.vias = aplicarEstadosCampo(resultado.vias, ESTADOS_CAMPO);
 
   const archivo = {
     version: 1,
