@@ -50,6 +50,20 @@ export function crearControlador(enviar, { ahora = () => performance.now(), pres
           velocidad = mensaje.velocidad;
         } else if (mensaje.tipo === 'demanda') {
           motor?.configurarDemanda(mensaje.parcial);
+        } else if (mensaje.tipo === 'restriccion') {
+          motor?.configurarRestriccion(mensaje.activa);
+        } else if (mensaje.tipo === 'red') {
+          if (!motor) return;
+          let nueva;
+          try {
+            nueva = crearRed(mensaje.datosRed);
+          } catch (err) {
+            enviar({ tipo: 'error', mensaje: err.message });
+            return;
+          }
+          motor.aplicarRed(nueva);
+          enviarCuadro();
+          enviarResumen();
         }
       } catch (err) {
         motor = null;

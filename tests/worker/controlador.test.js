@@ -52,3 +52,38 @@ describe('crearControlador', () => {
     expect(cuadro.t).toBe(1);
   });
 });
+
+describe('crearControlador · edición en vivo', () => {
+  const armar = () => {
+    const enviados = [];
+    const controlador = crearControlador((m) => enviados.push(m), { ahora: () => 0, presupuestoMs: 35 });
+    return { enviados, controlador };
+  };
+
+  it('aplica una red nueva y responde cuadro y resumen', () => {
+    const { enviados, controlador } = armar();
+    const datos = datosRedLinea();
+    controlador.recibir({ tipo: 'iniciar', datosRed: datos, opciones: { conDemanda: false } });
+    enviados.length = 0;
+    const cerrada = { ...datos, vias: datos.vias.map((v) => (v.id === 't1' ? { ...v, abierta: false } : v)) };
+    controlador.recibir({ tipo: 'red', datosRed: cerrada });
+    expect(enviados.map((m) => m.tipo)).toEqual(['cuadro', 'resumen']);
+  });
+
+  it('una red inválida responde error y la simulación sigue con la anterior', () => {
+    const { enviados, controlador } = armar();
+    controlador.recibir({ tipo: 'iniciar', datosRed: datosRedLinea(), opciones: { conDemanda: false } });
+    controlador.recibir({ tipo: 'red', datosRed: { version: 1 } });
+    expect(enviados.at(-1)).toMatchObject({ tipo: 'error', mensaje: expect.stringMatching(/Red inválida/) });
+    controlador.recibir({ tipo: 'reloj', corriendo: true, velocidad: 20 });
+    controlador.tick(50);
+    expect(enviados.at(-1)).toMatchObject({ tipo: 'cuadro', t: 1 });
+  });
+
+  it('red y restricción antes de iniciar no rompen nada', () => {
+    const { enviados, controlador } = armar();
+    controlador.recibir({ tipo: 'red', datosRed: datosRedLinea() });
+    controlador.recibir({ tipo: 'restriccion', activa: true });
+    expect(enviados).toEqual([]);
+  });
+});
