@@ -8,3 +8,4 @@ scripts/cache/
 python-original/data/
 python-original/resultados/
 python-original/.venv/
+.playwright-mcp/

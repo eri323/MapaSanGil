@@ -1,0 +1,72 @@
+:root {
+  --fondo: #f5f6f8;
+  --panel: #ffffff;
+  --texto: #1f2933;
+  --tenue: #6b7785;
+  --borde: #dfe3e8;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--texto);
+}
+
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; height: 100%; }
+body { background: var(--fondo); }
+
+.app { display: flex; flex-direction: column; height: 100%; }
+
+.barra {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--borde);
+}
+.barra h1 { margin: 0; font-size: 18px; }
+.barra span { color: var(--tenue); font-size: 14px; }
+
+.contenido { position: relative; flex: 1; }
+
+.lateral {
+  position: absolute; top: 12px; right: 12px; width: 280px;
+  display: flex; flex-direction: column; gap: 12px;
+  max-height: calc(100% - 24px); overflow-y: auto; z-index: 1;
+}
+
+.panel {
+  background: var(--panel); border: 1px solid var(--borde); border-radius: 8px;
+  padding: 12px 14px; box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+}
+.panel h2 { margin: 0 0 8px; font-size: 15px; }
+
+.leyenda ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13px; }
+.leyenda li { display: flex; align-items: center; gap: 8px; }
+.muestra-linea { width: 24px; height: 5px; border-radius: 3px; }
+.muestra-linea.punteada {
+  background: repeating-linear-gradient(90deg, #8e44ad 0 6px, transparent 6px 10px);
+}
+.muestra-punto { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #fff; }
+.muestra-flecha { width: 24px; text-align: center; color: #5d6d7e; font-size: 11px; }
+
+.ficha header { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
+.ficha header button {
+  border: none; background: none; font-size: 20px; line-height: 1; cursor: pointer; color: var(--tenue);
+}
+.ficha dl { margin: 0 0 10px; display: grid; gap: 4px; font-size: 13px; }
+.ficha dl div { display: flex; justify-content: space-between; gap: 8px; }
+.ficha dt { color: var(--tenue); }
+.ficha dd { margin: 0; font-weight: 500; text-align: right; }
+.ficha a { font-size: 13px; }
+.nota { margin: 8px 0 0; font-size: 12px; color: var(--tenue); }
+
+.atribucion {
+  position: absolute; left: 8px; bottom: 8px; z-index: 1;
+  background: rgb(255 255 255 / 0.85); padding: 2px 6px; border-radius: 4px;
+  font-size: 11px; color: var(--tenue);
+}
+
+.pantalla-mensaje {
+  height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 16px; text-align: center;
+}
+.pantalla-mensaje pre { white-space: pre-wrap; max-width: 640px; color: #c0392b; }
+
+@media (max-width: 640px) {
+  .lateral { left: 12px; right: 12px; width: auto; top: auto; bottom: 36px; max-height: 45%; }
+}
