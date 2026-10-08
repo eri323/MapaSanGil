@@ -91,3 +91,14 @@ describe('clasificarVia', () => {
     expect(clasificarVia({ highway: 'trunk', bridge: 'no' }).esPuente).toBe(false);
   });
 });
+
+describe('clasificarVia · casos de la revisión', () => {
+  it('maxspeed 0 o negativo se ignora: ninguna vía nace con velocidad 0', () => {
+    expect(clasificarVia({ highway: 'residential', maxspeed: '0' }).velocidadMax).toBe(30);
+    expect(clasificarVia({ highway: 'trunk', maxspeed: '0 mph' }).velocidadMax).toBe(50);
+  });
+
+  it('glorieta con oneway=no se respeta como doble sentido', () => {
+    expect(clasificarVia({ highway: 'tertiary', junction: 'roundabout', oneway: 'no' }).sentido).toBe('ambos');
+  });
+});
