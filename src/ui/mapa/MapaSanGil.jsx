@@ -16,6 +16,12 @@ export default function MapaSanGil({ red, viaSeleccionada, onSeleccionarVia }) {
   const vias = useMemo(() => [...red.vias.values()], [red]);
   const puentes = useMemo(() => vias.filter((v) => v.esPuente), [vias]);
   const flechas = useMemo(() => flechasDeVias(vias), [vias]);
+  const etiquetasPuentes = useMemo(
+    () => puentes
+      .filter((v) => v.nombrePuente)
+      .map((v) => ({ texto: v.nombrePuente.replace(/\s*\(.*\)$/, ''), posicion: v.geometria[Math.floor(v.geometria.length / 2)] })),
+    [puentes],
+  );
   const pares = useMemo(() => [...red.nodos.values()].filter((n) => n.control === 'pare'), [red]);
 
   const capas = [
@@ -56,6 +62,21 @@ export default function MapaSanGil({ red, viaSeleccionada, onSeleccionarVia }) {
       outlineWidth: 2,
       outlineColor: [255, 255, 255],
       fontSettings: { sdf: true },
+    }),
+    new TextLayer({
+      id: 'nombres-puentes',
+      data: etiquetasPuentes,
+      getPosition: (e) => e.posicion,
+      getText: (e) => e.texto,
+      getSize: 12,
+      getColor: [60, 45, 0],
+      getPixelOffset: [0, -16],
+      fontFamily: 'system-ui, Segoe UI, Arial, sans-serif',
+      fontWeight: 600,
+      fontSettings: { sdf: true },
+      outlineWidth: 3,
+      outlineColor: [255, 255, 255],
+      characterSet: 'auto',
     }),
     new ScatterplotLayer({
       id: 'pares',

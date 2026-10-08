@@ -9,3 +9,5 @@
 - Mapa verificado en el navegador: tipos, flechas, puentes, Variante
   punteada, ficha, error sin red, ancho de celular.
 - Etapa 1 completa en la rama `etapa-1`.
+- Repo conectado a GitHub (eri323/MapaSanGil); `main` es la base.
+- Hallazgos de la revisión resueltos con TDD (62 pruebas); puentes con nombre común.

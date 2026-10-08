@@ -45,3 +45,11 @@ describe('cargarRed', () => {
       .rejects.toThrow(/Red inválida/);
   });
 });
+
+describe('URL de la red', () => {
+  it('es relativa a la base de la app, para que funcione publicada en una subcarpeta', async () => {
+    const { urlRed } = await import('../../src/ui/datos/cargarRed.js');
+    expect(urlRed('/')).toBe('/data/red-sangil.json');
+    expect(urlRed('/MapaSanGil/')).toBe('/MapaSanGil/data/red-sangil.json');
+  });
+});

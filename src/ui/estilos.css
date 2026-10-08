@@ -48,6 +48,7 @@ body { background: var(--fondo); }
 .ficha header button {
   border: none; background: none; font-size: 20px; line-height: 1; cursor: pointer; color: var(--tenue);
 }
+.ficha .subtitulo { margin: -4px 0 8px; font-size: 12px; color: var(--tenue); }
 .ficha dl { margin: 0 0 10px; display: grid; gap: 4px; font-size: 13px; }
 .ficha dl div { display: flex; justify-content: space-between; gap: 8px; }
 .ficha dt { color: var(--tenue); }

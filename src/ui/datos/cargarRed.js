@@ -1,6 +1,8 @@
 import { crearRed } from '../../sim/red.js';
 
-export const URL_RED = '/data/red-sangil.json';
+// Relativa a la base de la app, para que funcione aunque se publique en una subcarpeta.
+export const urlRed = (base = import.meta.env?.BASE_URL ?? '/') => `${base}data/red-sangil.json`;
+export const URL_RED = urlRed();
 
 export async function cargarRed(fetchFn = globalThis.fetch, url = URL_RED) {
   let respuesta;

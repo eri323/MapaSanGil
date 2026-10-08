@@ -10,8 +10,9 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { osmARed } from './lib/osmARed.js';
-import { validarRed } from '../src/sim/red.js';
+import { validarRed, crearRed, componentePrincipal } from '../src/sim/red.js';
 import { ETIQUETA_TIPO } from '../src/sim/tipos.js';
+import { NOMBRES_PUENTES } from './datos/puentes.js';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CACHE = join(RAIZ, 'scripts', 'cache', 'overpass-sangil.json');
@@ -82,7 +83,8 @@ function imprimirInventario({ nodos, vias, descartadas, pares }) {
   const puentes = vias.filter((v) => v.esPuente).sort((a, b) => b.longitud - a.longitud);
   console.log(`\n${puentes.length} tramos de puente:`);
   for (const v of puentes.slice(0, 15)) {
-    console.log(`  ${String(v.longitud).padStart(7)} m  ${v.nombre || '(sin nombre)'}  [way ${v.osmId}]`);
+    const comun = v.nombrePuente ? `  → ${v.nombrePuente}` : '';
+    console.log(`  ${String(v.longitud).padStart(7)} m  ${v.nombre || '(sin nombre)'}  [way ${v.osmId}]${comun}`);
   }
 
   const obras = vias.filter((v) => v.enConstruccion);
@@ -95,7 +97,7 @@ function imprimirInventario({ nodos, vias, descartadas, pares }) {
 async function main() {
   const fresca = process.argv.includes('--fresca');
   const overpass = await obtenerOverpass(fresca);
-  const resultado = osmARed(overpass);
+  const resultado = osmARed(overpass, { nombresPuentes: NOMBRES_PUENTES });
 
   const archivo = {
     version: 1,
@@ -114,6 +116,19 @@ async function main() {
   await mkdir(dirname(SALIDA), { recursive: true });
   await writeFile(SALIDA, JSON.stringify(archivo));
   imprimirInventario(resultado);
+
+  // Respetando sentidos, ¿desde cuántos cruces se puede ir y volver a todos los demás?
+  const red = crearRed(archivo);
+  const principal = componentePrincipal(red);
+  const atrapados = [...red.nodos.keys()].filter((id) => !principal.has(id));
+  console.log(`\nAlcance con sentidos: ${principal.size} de ${red.nodos.size} cruces se conectan ida y vuelta.`);
+  if (atrapados.length) {
+    console.log(`  ${atrapados.length} cruces quedan por fuera (se entra y no se sale, o al revés):`);
+    for (const id of atrapados.slice(0, 10)) {
+      const n = red.nodos.get(id);
+      console.log(`    ${id}  https://www.openstreetmap.org/node/${id.slice(1)}  (${n.lat.toFixed(5)}, ${n.lon.toFixed(5)})`);
+    }
+  }
   console.log(`\nRed -> ${SALIDA}`);
 }
 
