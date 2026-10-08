@@ -32,3 +32,11 @@ export const ETIQUETA_TIPO = {
   avenida_nacional: 'Avenida Nacional',
   variante: 'Variante',
 };
+export const ETIQUETA_ESTADO = { bueno: 'Bueno', regular: 'Regular', huecos: 'Con huecos' };
+export const ETIQUETA_SUPERFICIE = { pavimento: 'Pavimento', adoquin: 'Adoquín', destapado: 'Destapada' };
+export const ETIQUETA_CONTROL = {
+  pare: 'Pare',
+  prioridad: 'Prioridad por jerarquía',
+  sin_senal: 'Sin señal (cede a la derecha)',
+  semaforo: 'Semáforo',
+};

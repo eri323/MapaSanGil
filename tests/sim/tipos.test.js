@@ -25,3 +25,12 @@ describe('tipos de dominio', () => {
     expect(CONTROLES).toEqual(['pare', 'prioridad', 'sin_senal', 'semaforo']);
   });
 });
+import { ETIQUETA_ESTADO, ETIQUETA_SUPERFICIE, ETIQUETA_CONTROL } from '../../src/sim/tipos.js';
+
+describe('etiquetas de edición', () => {
+  it('todo estado, superficie y control tiene etiqueta', () => {
+    for (const e of ESTADOS) expect(ETIQUETA_ESTADO[e]).toBeTruthy();
+    for (const s of SUPERFICIES) expect(ETIQUETA_SUPERFICIE[s]).toBeTruthy();
+    for (const c of CONTROLES) expect(ETIQUETA_CONTROL[c]).toBeTruthy();
+  });
+});

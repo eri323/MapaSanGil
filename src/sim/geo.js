@@ -38,3 +38,33 @@ export function anguloPantalla([lon1, lat1], [lon2, lat2]) {
   const dy = lat2 - lat1;
   return (Math.atan2(dy, dx) * 180) / Math.PI;
 }
+// Punto de la línea más cercano a p. Aproximación plana, suficiente a escala de ciudad.
+export function proyectarEnLinea(coords, p) {
+  let mejor = null;
+  for (let i = 0; i < coords.length - 1; i++) {
+    const [ax, ay] = coords[i];
+    const [bx, by] = coords[i + 1];
+    const k = Math.cos(rad((ay + by) / 2));
+    const dx = (bx - ax) * k;
+    const dy = by - ay;
+    const largo2 = dx * dx + dy * dy;
+    let f = largo2 === 0 ? 0 : ((p[0] - ax) * k * dx + (p[1] - ay) * dy) / largo2;
+    f = Math.min(1, Math.max(0, f));
+    const punto = [ax + (bx - ax) * f, ay + (by - ay) * f];
+    const distancia = distanciaMetros(p, punto);
+    if (!mejor || distancia < mejor.distancia) mejor = { punto, distancia, segmento: i };
+  }
+  return mejor;
+}
+
+// ¿Algún tramo de a corta (no solo toca) algún tramo de b?
+export function lineasSeCruzan(a, b) {
+  const lado = (p, q, r) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+  for (let i = 1; i < a.length; i++) {
+    for (let j = 1; j < b.length; j++) {
+      const [p1, p2, q1, q2] = [a[i - 1], a[i], b[j - 1], b[j]];
+      if (lado(p1, p2, q1) * lado(p1, p2, q2) < 0 && lado(q1, q2, p1) * lado(q1, q2, p2) < 0) return true;
+    }
+  }
+  return false;
+}
