@@ -68,15 +68,17 @@ export function redCruce({
 }
 
 // a → b → d directo, o a → b → m → d por la alterna. Todo de un sentido.
-export function redDosRutas() {
+export function datosDosRutas() {
   const nodos = { a: [0, 0], b: [200, 0], d: [400, 0], m: [300, 150] };
-  return armarRed(nodos, [
+  return armarDatos(nodos, [
     viaEntre('ab', nodos, 'a', 'b'),
     viaEntre('bd', nodos, 'b', 'd'),
     viaEntre('bm', nodos, 'b', 'm'),
     viaEntre('md', nodos, 'm', 'd'),
   ]);
 }
+
+export const redDosRutas = () => crearRed(datosDosRutas());
 
 // La Avenida atraviesa el casco urbano (W–a–b–E); la Variante lo rodea por el
 // norte (W–v1–v2–E), más larga. El casco es un círculo de 600 m en (0, 0).

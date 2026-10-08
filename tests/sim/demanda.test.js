@@ -105,3 +105,17 @@ describe('prepararPuntos', () => {
     expect(p.avisos.join(' ')).toContain('zzz');
   });
 });
+
+describe('crearDemanda · actualizarPuntos', () => {
+  it('después de actualizar, los viajes usan las salidas nuevas', () => {
+    const demanda = crearDemanda(puntos, { horaInicio: 11, factor: 5 }, crearAleatorio(4));
+    demanda.actualizarPuntos({
+      ...puntos,
+      salidas: { n1: { nombre: 'N1', nodo: 'N1', avenida: true }, n2: { nombre: 'N2', nodo: 'N2', avenida: true } },
+    });
+    const pesados = [];
+    for (let t = 0; t < 1800; t += 0.5) pesados.push(...demanda.generar(t, 0.5).filter((v) => v.flujo === 'pesado'));
+    expect(pesados.length).toBeGreaterThan(0);
+    for (const v of pesados) expect(['N1', 'N2']).toContain(v.origen);
+  });
+});

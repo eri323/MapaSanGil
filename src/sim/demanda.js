@@ -65,13 +65,21 @@ export function prepararPuntos(red, zonas, salidas) {
   return { zonas: zonasListas, salidas: salidasListas, nodosLocales, avisos };
 }
 
-export function crearDemanda(puntos, configInicial, aleatorio) {
+export function crearDemanda(puntosIniciales, configInicial, aleatorio) {
   let config = { factor: 1, temporada: 1, horaInicio: 7, ...configInicial };
   const proximo = Object.fromEntries(FLUJOS.map((f) => [f, null]));
 
-  const salidas = Object.values(puntos.salidas);
-  const salidasAvenida = salidas.filter((s) => s.avenida);
-  const pesosZonas = Object.fromEntries(Object.entries(puntos.zonas).map(([k, z]) => [k, z.peso]));
+  let puntos;
+  let salidas;
+  let salidasAvenida;
+  let pesosZonas;
+  function usarPuntos(nuevos) {
+    puntos = nuevos;
+    salidas = Object.values(puntos.salidas);
+    salidasAvenida = salidas.filter((s) => s.avenida);
+    pesosZonas = Object.fromEntries(Object.entries(puntos.zonas).map(([k, z]) => [k, z.peso]));
+  }
+  usarPuntos(puntosIniciales);
 
   const hora = (t) => Math.floor(config.horaInicio + t / 3600) % 24;
   const tasa = (flujo, t) => (DEMANDA_BASE[flujo] * config.factor * config.temporada * PERFIL_HORARIO[hora(t)]) / 3600;
@@ -144,5 +152,6 @@ export function crearDemanda(puntos, configInicial, aleatorio) {
       for (const flujo of FLUJOS) proximo[flujo] = null;
     },
     config: () => ({ ...config }),
+    actualizarPuntos: usarPuntos,
   };
 }
