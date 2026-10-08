@@ -41,3 +41,17 @@ export function flechasDeVias(vias, { longitudMinima = 25 } = {}) {
   }
   return flechas;
 }
+
+export function colorDiferencia(delta) {
+  if (delta === undefined || delta === null) return [215, 219, 224];
+  if (delta > 0.05) return [46, 160, 67];
+  if (delta < -0.05) return [214, 69, 65];
+  return [190, 196, 204];
+}
+
+export const ESCALA_DIFERENCIA = [
+  { etiqueta: 'Más fluida que en la referencia', color: [46, 160, 67] },
+  { etiqueta: 'Igual', color: [190, 196, 204] },
+  { etiqueta: 'Más lenta que en la referencia', color: [214, 69, 65] },
+  { etiqueta: 'Sin tráfico en ninguno', color: [215, 219, 224] },
+];

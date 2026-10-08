@@ -17,3 +17,24 @@ describe('formatearDuracion', () => {
     expect(formatearDuracion(NaN)).toBe('—');
   });
 });
+
+import { formatearMetrica, formatearVariacion, ETIQUETA_METRICA } from '../../src/ui/formato.js';
+import { METRICAS_COMPARADAS } from '../../src/escenarios/comparar.js';
+
+describe('formato de métricas', () => {
+  it('toda métrica comparada tiene etiqueta', () => {
+    for (const clave of METRICAS_COMPARADAS) expect(ETIQUETA_METRICA[clave]).toBeTruthy();
+  });
+
+  it('tiempos como duración, conteos redondeados, vehículo-hora con un decimal', () => {
+    expect(formatearMetrica('demoraMedia', 125)).toBe('2 min 5 s');
+    expect(formatearMetrica('viajesCompletados', 412.6)).toBe('413');
+    expect(formatearMetrica('demoraTotalVh', 12.345)).toBe('12,3 veh·h');
+  });
+
+  it('variación con signo, o guion si no se puede calcular', () => {
+    expect(formatearVariacion(0.254)).toBe('+25 %');
+    expect(formatearVariacion(-0.1)).toBe('−10 %');
+    expect(formatearVariacion(null)).toBe('—');
+  });
+});
