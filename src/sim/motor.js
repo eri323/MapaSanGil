@@ -11,7 +11,8 @@ import { convieneCambiar } from './mobil.js';
 import { crearDemanda, prepararPuntos } from './demanda.js';
 import { crearMetricas } from './metricas.js';
 import { arcoTransitable } from './red.js';
-import { ZONAS, SALIDAS } from '../escenarios/zonas.js';
+import { ZONAS, SALIDAS, CASCO_URBANO } from '../escenarios/zonas.js';
+import { arcosEnCasco, FLUJOS_RESTRINGIBLES, permitidoRestringido } from './restriccion.js';
 
 const DISTANCIA_DECISION = 60; // m: la vía con prioridad confirma el paso desde aquí
 const DISTANCIA_SEMAFORO = 30; // m: se mira el color del semáforo desde aquí
@@ -26,30 +27,42 @@ function insertarOrdenado(lista, veh) {
   else lista.splice(k, 0, veh);
 }
 
-export function crearMotor(red, opciones = {}) {
+export function crearMotor(redInicial, opciones = {}) {
   const {
     semilla = 1, dt = 0.5, umbralBloqueo = 180, intervaloReruteo = 90,
     demanda: configDemanda = {}, conDemanda = true, zonas = ZONAS, salidas = SALIDAS,
-    alCruzar = null, alTerminar = null,
+    alCruzar = null, alTerminar = null, casco = CASCO_URBANO, restriccionPesados = false,
   } = opciones;
 
   const aleatorio = crearAleatorio(semilla);
-  const geometria = prepararGeometria(red);
-  const tiempos = crearTiempos(red, geometria);
-  const accesos = analizarAccesos(red, geometria);
   const metricas = crearMetricas();
-  const puntos = prepararPuntos(red, zonas, salidas);
-  const demanda = conDemanda ? crearDemanda(puntos, configDemanda, aleatorio) : null;
+  let red = redInicial;
+  let geometria;
+  let accesos;
+  let cascoArcos;
+  let estadoArco;
 
-  // Cada arco guarda sus carriles; cada carril, sus vehículos del frente hacia atrás.
-  const estadoArco = new Map();
-  for (const [arcoId, geo] of geometria) {
-    const via = red.vias.get(red.arcos.get(arcoId).viaId);
-    estadoArco.set(arcoId, {
-      id: arcoId, via, geo, largo: geo.largo,
-      carriles: Array.from({ length: via.carrilesPorSentido }, () => []),
-    });
+  // Todo lo que depende de la forma de la red. Cada arco guarda sus carriles;
+  // cada carril, sus vehículos del frente hacia atrás.
+  function construirArcos() {
+    geometria = prepararGeometria(red);
+    accesos = analizarAccesos(red, geometria);
+    cascoArcos = arcosEnCasco(red, geometria, casco);
+    estadoArco = new Map();
+    for (const [arcoId, geo] of geometria) {
+      const via = red.vias.get(red.arcos.get(arcoId).viaId);
+      estadoArco.set(arcoId, {
+        id: arcoId, via, geo, largo: geo.largo,
+        carriles: Array.from({ length: via.carrilesPorSentido }, () => []),
+      });
+    }
   }
+  construirArcos();
+
+  let tiempos = crearTiempos(red, geometria);
+  let restriccion = restriccionPesados;
+  let puntos = prepararPuntos(red, zonas, salidas);
+  const demanda = conDemanda ? crearDemanda(puntos, configDemanda, aleatorio) : null;
 
   const ocupadoHasta = new Map();
   const llegandoA = new Set(); // arcos a los que un vehículo con permiso está por entrar
@@ -61,6 +74,18 @@ export function crearMotor(red, opciones = {}) {
   let siguienteId = 1;
 
   const costo = (arcoId) => (arcoTransitable(red, arcoId) ? tiempos.estimado(arcoId) : Infinity);
+  const costoRestringido = (arcoId) => (permitidoRestringido(red, cascoArcos, arcoId) ? tiempos.estimado(arcoId) : Infinity);
+
+  // Con la restricción activa, los pesados de paso solo usan Avenida y Variante
+  // por fuera del casco; si así no llegan (la Variante no conecta), pasan por
+  // el centro como hoy.
+  function rutaPara(veh, origen) {
+    if (restriccion && veh.restringible) {
+      const ruta = rutaMasRapida(red, origen, veh.destino, costoRestringido);
+      if (ruta) return ruta;
+    }
+    return rutaMasRapida(red, origen, veh.destino, costo);
+  }
 
   function frente(e) {
     let f = null;
@@ -86,8 +111,9 @@ export function crearMotor(red, opciones = {}) {
     return (e.largo - f.s) / Math.max(f.v, 0.5);
   }
 
-  function agregarVehiculo({ tipo, origen, destino, conductor }) {
-    const ruta = rutaMasRapida(red, origen, destino, costo);
+  function agregarVehiculo({ tipo, origen, destino, conductor, flujo = 'local' }) {
+    const restringible = FLUJOS_RESTRINGIBLES.has(flujo);
+    const ruta = rutaPara({ restringible, destino }, origen);
     if (!ruta || ruta.arcos.length === 0) {
       metricas.viajeImposible();
       return null;
@@ -100,7 +126,7 @@ export function crearMotor(red, opciones = {}) {
     }, 0);
     const veh = {
       id: siguienteId++, tipo, tipoIndice: TIPOS_VEHICULO.indexOf(tipo), perfil, conductor: cond,
-      ruta: ruta.arcos, i: 0, s: 0, v: 0, a: 0, carril: 0, destino,
+      ruta: ruta.arcos, i: 0, s: 0, v: 0, a: 0, carril: 0, destino, origen, flujo, restringible,
       tSalida: t, tEntradaArco: t, tiempoLibre,
       permiso: false, paroEnPare: false, esperaCruce: 0, quietoDesde: null, transferidoEn: -1,
       proximoReruteo: t + intervaloReruteo * (0.5 + aleatorio.siguiente()),
@@ -371,7 +397,7 @@ export function crearMotor(red, opciones = {}) {
       if (t < veh.proximoReruteo || veh.i >= veh.ruta.length - 1) continue;
       veh.proximoReruteo = t + intervaloReruteo;
       const desde = red.arcos.get(veh.ruta[veh.i]).hasta;
-      const nueva = rutaMasRapida(red, desde, veh.destino, costo);
+      const nueva = rutaPara(veh, desde);
       if (!nueva || nueva.arcos.length === 0) continue;
       if (nueva.arcos[0] !== veh.ruta[veh.i + 1] && veh.permiso) {
         // Cambiar de giro encima del cruce obligaría a frenar en seco: se
@@ -415,6 +441,76 @@ export function crearMotor(red, opciones = {}) {
     return [...acumulado].map(([viaId, { suma, n }]) => ({ viaId, ratio: Math.min(1, suma / n), vehiculos: n }));
   }
 
+  const firma = (r, g, arcoId) => {
+    const arco = r.arcos.get(arcoId);
+    return arco ? `${arco.desde}|${arco.hasta}|${g.get(arcoId).largo.toFixed(1)}` : null;
+  };
+
+  // Aplica una red editada a la simulación en curso. Quien va por un arco que
+  // no cambió sigue donde iba; quien iba por uno que cambió se retira.
+  function aplicarRed(nuevaRed) {
+    const antes = { red, geometria, estadoArco };
+    const medidos = tiempos.exportar();
+    red = nuevaRed;
+    construirArcos();
+    const igual = (arcoId) => {
+      const f = firma(antes.red, antes.geometria, arcoId);
+      return f !== null && f === firma(red, geometria, arcoId);
+    };
+    tiempos = crearTiempos(red, geometria, new Map([...medidos].filter(([id]) => igual(id))));
+    puntos = prepararPuntos(red, zonas, salidas);
+    demanda?.actualizarPuntos(puntos);
+    llegandoA.clear();
+
+    const retirar = (veh) => { vivos.delete(veh); metricas.retirado(); };
+    for (const viejo of antes.estadoArco.values()) {
+      for (const carril of viejo.carriles) {
+        for (const veh of carril) {
+          const actual = veh.ruta[veh.i];
+          if (!igual(actual)) { retirar(veh); continue; }
+          if (!veh.ruta.slice(veh.i + 1).every(igual)) {
+            const nueva = rutaPara(veh, red.arcos.get(actual).hasta);
+            if (!nueva || nueva.arcos.length === 0) { retirar(veh); continue; }
+            veh.ruta = [...veh.ruta.slice(0, veh.i + 1), ...nueva.arcos];
+          }
+          const e = estadoArco.get(actual);
+          veh.carril = Math.min(veh.carril, e.carriles.length - 1);
+          veh.permiso = false;
+          veh.paroEnPare = false;
+          veh.proximoReruteo = t + (veh.id % 10); // repartido para no recalcular todo de una vez
+          const lista = e.carriles[veh.carril];
+          insertarOrdenado(lista, veh);
+          const k = lista.indexOf(veh);
+          const lider = lista[k - 1];
+          const seguidor = lista[k + 1];
+          if ((lider && lider.s - lider.perfil.largo < veh.s) || (seguidor && veh.s - veh.perfil.largo < seguidor.s)) {
+            lista.splice(k, 1);
+            retirar(veh);
+          }
+        }
+      }
+    }
+
+    const siguenEsperando = [];
+    for (const veh of pendientes) {
+      if (veh.ruta.every(igual)) { siguenEsperando.push(veh); continue; }
+      const nueva = rutaPara(veh, veh.origen);
+      if (nueva && nueva.arcos.length) {
+        veh.ruta = nueva.arcos;
+        siguenEsperando.push(veh);
+      } else {
+        metricas.viajeImposible();
+      }
+    }
+    pendientes.length = 0;
+    pendientes.push(...siguenEsperando);
+  }
+
+  function configurarRestriccion(activa) {
+    restriccion = Boolean(activa);
+    for (const veh of vivos) if (veh.restringible) veh.proximoReruteo = t;
+  }
+
   function paso() {
     if (demanda) for (const viaje of demanda.generar(t, dt)) agregarVehiculo(viaje);
     intentarInsertar();
@@ -434,6 +530,9 @@ export function crearMotor(red, opciones = {}) {
 
   return {
     get t() { return t; },
+    get restriccion() { return restriccion; },
+    configurarRestriccion,
+    aplicarRed,
     dt,
     paso,
     avanzar(segundos) {

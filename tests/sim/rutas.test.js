@@ -53,3 +53,12 @@ describe('crearTiempos', () => {
     expect(rutaMasRapida(red, 'a', 'd', tiempos.estimado).arcos).toEqual(['ab>', 'bm>', 'md>']);
   });
 });
+
+describe('crearTiempos · conservar lo medido', () => {
+  it('arranca con tiempos previos y los exporta', () => {
+    const tiempos = crearTiempos(red, geo, new Map([['bd>', 500]]));
+    expect(tiempos.estimado('bd>')).toBe(500);
+    tiempos.registrar('ab>', 40);
+    expect([...tiempos.exportar()].sort()).toEqual([['ab>', 40], ['bd>', 500]]);
+  });
+});

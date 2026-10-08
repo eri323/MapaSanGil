@@ -19,10 +19,13 @@ import { VIAS_AGREGADAS } from './datos/correccionesCampo.js';
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CACHE = join(RAIZ, 'scripts', 'cache', 'overpass-sangil.json');
 const SALIDA = join(RAIZ, 'public', 'data', 'red-sangil.json');
+const CACHE_RIOS = join(RAIZ, 'scripts', 'cache', 'rio.json');
+const SALIDA_RIOS = join(RAIZ, 'public', 'data', 'rios.json');
 
 // Área un poco más amplia que el casco urbano para incluir la Variante y las
 // salidas a otros municipios. Verifica estos límites en openstreetmap.org.
 const BBOX = { sur: 6.525, oeste: -73.16, norte: 6.585, este: -73.105 };
+const CONSULTA_RIOS = `[out:json][timeout:60];way["waterway"="river"](${BBOX.sur},${BBOX.oeste},${BBOX.norte},${BBOX.este});out tags geom;`;
 
 const SERVIDORES = [
   'https://overpass-api.de/api/interpreter',
@@ -39,7 +42,7 @@ const CONSULTA = `
 out body;
 `;
 
-async function descargar() {
+async function descargar(consulta = CONSULTA) {
   for (const url of SERVIDORES) {
     try {
       console.log(`Descargando desde ${url} ...`);
@@ -49,7 +52,7 @@ async function descargar() {
           'Content-Type': 'application/x-www-form-urlencoded',
           'User-Agent': 'MapaSangil/0.1 (proyecto universitario)',
         },
-        body: `data=${encodeURIComponent(CONSULTA)}`,
+        body: `data=${encodeURIComponent(consulta)}`,
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return await r.json();
@@ -96,6 +99,21 @@ function imprimirInventario({ nodos, vias, descartadas, pares }) {
   }
 }
 
+async function escribirRios(fresca) {
+  let crudo;
+  if (!fresca && existsSync(CACHE_RIOS)) {
+    crudo = JSON.parse(await readFile(CACHE_RIOS, 'utf8'));
+  } else {
+    crudo = await descargar(CONSULTA_RIOS);
+    await writeFile(CACHE_RIOS, JSON.stringify(crudo));
+  }
+  const rios = crudo.elements
+    .filter((e) => e.type === 'way' && e.geometry)
+    .map((e) => ({ nombre: e.tags?.name ?? '', geometria: e.geometry.map((g) => [g.lon, g.lat]) }));
+  await writeFile(SALIDA_RIOS, JSON.stringify({ version: 1, fuente: '© colaboradores de OpenStreetMap (ODbL)', rios }));
+  console.log(`${rios.length} tramos de río -> ${SALIDA_RIOS}`);
+}
+
 async function main() {
   const fresca = process.argv.includes('--fresca');
   const overpass = aplicarCorrecciones(await obtenerOverpass(fresca), { viasAgregadas: VIAS_AGREGADAS });
@@ -132,6 +150,11 @@ async function main() {
     }
   }
   console.log(`\nRed -> ${SALIDA}`);
+  try {
+    await escribirRios(fresca);
+  } catch (err) {
+    console.warn(`No se pudieron generar los ríos (${err.message}); el editor no marcará puentes solo.`);
+  }
 }
 
 main().catch((err) => {

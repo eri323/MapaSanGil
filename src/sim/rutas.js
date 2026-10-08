@@ -77,14 +77,15 @@ export function rutaMasRapida(red, origen, destino, costoArco) {
 
 const PESO_NUEVA_MEDIDA = 0.3;
 
-export function crearTiempos(red, geometria) {
-  const medido = new Map();
+export function crearTiempos(red, geometria, previos = new Map()) {
+  const medido = new Map(previos);
   const espera = new Map();
   const libre = (arcoId) => geometria.get(arcoId).largo
     / velocidadReferencia(red.vias.get(red.arcos.get(arcoId).viaId));
 
   return {
     libre,
+    exportar: () => new Map(medido),
     estimado(arcoId) {
       const base = libre(arcoId);
       return Math.max(base, medido.get(arcoId) ?? 0, base + (espera.get(arcoId) ?? 0));

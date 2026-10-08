@@ -18,3 +18,7 @@ export const SALIDAS = {
   barichara: { nombre: 'Salida a Barichara', nodo: 'n8679370924', avenida: false },
   charala: { nombre: 'Salida a Charalá', nodo: 'n1420153782', avenida: false },
 };
+
+// Casco urbano para la restricción de pesados de paso: círculo alrededor del
+// Parque La Libertad. Supuesto razonable; la Variante y las salidas quedan fuera.
+export const CASCO_URBANO = { lon: -73.1336, lat: 6.5548, radio: 1300 };

@@ -7,6 +7,7 @@ export function crearMetricas() {
   let completados = 0;
   let imposibles = 0;
   let bloqueos = 0;
+  let retirados = 0;
   let sumaDuracion = 0;
   let sumaDemora = 0;
   const porTipo = {};
@@ -21,6 +22,7 @@ export function crearMetricas() {
     },
     viajeImposible() { imposibles += 1; },
     bloqueo() { bloqueos += 1; },
+    retirado() { retirados += 1; },
     muestra(m) {
       serie.push(m);
       if (serie.length > MAXIMO_MUESTRAS) serie.shift();
@@ -30,6 +32,7 @@ export function crearMetricas() {
         viajesCompletados: completados,
         viajesImposibles: imposibles,
         bloqueos,
+        retirados,
         tiempoMedio: completados ? sumaDuracion / completados : 0,
         demoraMedia: completados ? sumaDemora / completados : 0,
         demoraTotalVh: sumaDemora / 3600,

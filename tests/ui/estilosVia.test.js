@@ -39,3 +39,15 @@ describe('flechasDeVias', () => {
     expect(flechasDeVias([via({ longitud: 10 })])).toEqual([]);
   });
 });
+
+import { EXTRA_DOBLE_CALZADA, COLOR_AJUSTE } from '../../src/ui/mapa/estilosVia.js';
+
+describe('estilos del editor', () => {
+  it('la doble calzada se dibuja más ancha', () => {
+    expect(anchoVia({ tipo: 'avenida_nacional', dobleCalzada: true })).toBe(ANCHO_TIPO.avenida_nacional + EXTRA_DOBLE_CALZADA);
+  });
+
+  it('hay un color por tipo de ajuste', () => {
+    for (const tipo of ['nodo', 'via', 'libre']) expect(COLOR_AJUSTE[tipo]).toHaveLength(3);
+  });
+});

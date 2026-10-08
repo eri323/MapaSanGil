@@ -24,3 +24,9 @@
 | 2026-10-08 | Correcciones de campo sobre OSM en `scripts/datos/correccionesCampo.js`, aplicadas al generar la red | Datos que OSM no tiene; el editor (etapa 3) servirá para cambios de escenario |
 | 2026-10-08 | Calle 12 entre Carreras 10 y 11 habilitada, un sentido hacia la Carrera 11 | Dato de campo del usuario; en OSM figura peatonal |
 | 2026-10-08 | Plaza de mercado = Mercado cubierto (OSM node 5478495523); salida a Charalá agregada | Confirmado por el usuario |
+| 2026-10-08 | Las ediciones son cambios (datos) aplicados sobre la red base; historial con deshacer/rehacer autoguardado en el navegador | Se pueden reproducir, guardar como escenario (etapa 4) y deshacer |
+| 2026-10-08 | Un cambio que aísla zonas o salidas, o más de 20 cruces, pide confirmación | Spec §8 |
+| 2026-10-08 | Al editar en vivo, los vehículos en arcos que cambiaron se retiran y se cuentan | Evita vehículos en vías que ya no existen o van al revés |
+| 2026-10-08 | La Variante de OSM no conecta: el usuario traza los tramos que faltan con la herramienta de vía nueva | OSM solo trae 2 km con extremos sueltos; no hay trazado georreferenciado confiable |
+| 2026-10-08 | Restricción de pesados: flujos pesado y busPaso solo por Avenida/Variante fuera de un casco de 1,3 km; si no hay ruta, pasan por el centro | Spec §5; evita viajes imposibles mientras la Variante no conecte |
+| 2026-10-08 | Doble calzada: 2 carriles por sentido en toda la Avenida o toda la Variante | Indicación del usuario |

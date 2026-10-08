@@ -4,7 +4,7 @@ import { crearMetricas } from '../../src/sim/metricas.js';
 describe('crearMetricas', () => {
   it('sin viajes todo es cero', () => {
     expect(crearMetricas().resumen()).toEqual({
-      viajesCompletados: 0, viajesImposibles: 0, bloqueos: 0,
+      viajesCompletados: 0, viajesImposibles: 0, bloqueos: 0, retirados: 0,
       tiempoMedio: 0, demoraMedia: 0, demoraTotalVh: 0, porTipo: {},
     });
   });
@@ -36,5 +36,13 @@ describe('crearMetricas', () => {
     m.muestra({ t: 1, enRed: 3, enCola: 1 });
     expect(m.resumen()).toMatchObject({ viajesImposibles: 1, bloqueos: 2 });
     expect(m.serie()).toEqual([{ t: 1, enRed: 3, enCola: 1 }]);
+  });
+});
+
+describe('crearMetricas · retirados', () => {
+  it('cuenta los vehículos retirados por cambios en la red', () => {
+    const m = crearMetricas();
+    m.retirado();
+    expect(m.resumen().retirados).toBe(1);
   });
 });
