@@ -1,10 +1,11 @@
-import { crearRed } from '../../sim/red.js';
+import { crearRed, validarRed } from '../../sim/red.js';
 
 // Relativa a la base de la app, para que funcione aunque se publique en una subcarpeta.
 export const urlRed = (base = import.meta.env?.BASE_URL ?? '/') => `${base}data/red-sangil.json`;
 export const URL_RED = urlRed();
 
-export async function cargarRed(fetchFn = globalThis.fetch, url = URL_RED) {
+// Datos crudos ya validados: así se envían al worker, que arma su propia red.
+export async function cargarDatosRed(fetchFn = globalThis.fetch, url = URL_RED) {
   let respuesta;
   try {
     respuesta = await fetchFn(url);
@@ -21,5 +22,11 @@ export async function cargarRed(fetchFn = globalThis.fetch, url = URL_RED) {
   } catch {
     throw new Error('El archivo de la red vial no existe o está dañado. Genéralo con "npm run red".');
   }
-  return crearRed(datos);
+  const errores = validarRed(datos);
+  if (errores.length) throw new Error(`Red inválida:\n- ${errores.slice(0, 10).join('\n- ')}`);
+  return datos;
+}
+
+export async function cargarRed(fetchFn, url) {
+  return crearRed(await cargarDatosRed(fetchFn, url));
 }
