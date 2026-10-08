@@ -7,12 +7,13 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   colorVia, anchoVia, flechasDeVias, COLOR_PUENTE, COLOR_PARE, COLOR_SELECCION,
 } from './estilosVia.js';
+import { COLOR_POR_INDICE, RADIO_POR_INDICE, colorCongestion } from './estilosVehiculo.js';
 
 const ESTILO_MAPA = 'https://tiles.openfreemap.org/styles/positron';
 const VISTA_INICIAL = { longitude: -73.134, latitude: 6.555, zoom: 14.5, pitch: 0, bearing: 0 };
 const PUNTEADO = new PathStyleExtension({ dash: true });
 
-export default function MapaSanGil({ red, viaSeleccionada, onSeleccionarVia }) {
+export default function MapaSanGil({ red, vehiculos, colorPor, congestion, viaSeleccionada, onSeleccionarVia }) {
   const vias = useMemo(() => [...red.vias.values()], [red]);
   const puentes = useMemo(() => vias.filter((v) => v.esPuente), [vias]);
   const flechas = useMemo(() => flechasDeVias(vias), [vias]);
@@ -23,6 +24,13 @@ export default function MapaSanGil({ red, viaSeleccionada, onSeleccionarVia }) {
     [puentes],
   );
   const pares = useMemo(() => [...red.nodos.values()].filter((n) => n.control === 'pare'), [red]);
+
+  const colorDeVia = (v) => {
+    if (v.id === viaSeleccionada) return COLOR_SELECCION;
+    return colorPor === 'congestion' ? colorCongestion(congestion.get(v.id)) : colorVia(v);
+  };
+
+  const { cantidad, datos } = vehiculos;
 
   const capas = [
     new PathLayer({
@@ -38,7 +46,7 @@ export default function MapaSanGil({ red, viaSeleccionada, onSeleccionarVia }) {
       id: 'vias',
       data: vias,
       getPath: (v) => v.geometria,
-      getColor: (v) => (v.id === viaSeleccionada ? COLOR_SELECCION : colorVia(v)),
+      getColor: colorDeVia,
       getWidth: anchoVia,
       widthUnits: 'pixels',
       capRounded: true,
@@ -47,7 +55,7 @@ export default function MapaSanGil({ red, viaSeleccionada, onSeleccionarVia }) {
       getDashArray: (v) => (v.enConstruccion ? [4, 3] : [0, 0]),
       dashJustified: true,
       extensions: [PUNTEADO],
-      updateTriggers: { getColor: viaSeleccionada },
+      updateTriggers: { getColor: [viaSeleccionada, colorPor, congestion] },
     }),
     new TextLayer({
       id: 'flechas',
@@ -62,6 +70,20 @@ export default function MapaSanGil({ red, viaSeleccionada, onSeleccionarVia }) {
       outlineWidth: 2,
       outlineColor: [255, 255, 255],
       fontSettings: { sdf: true },
+    }),
+    new ScatterplotLayer({
+      id: 'vehiculos',
+      data: { length: cantidad },
+      getPosition: (_, { index }) => [datos[index * 3], datos[index * 3 + 1]],
+      getFillColor: (_, { index }) => COLOR_POR_INDICE[datos[index * 3 + 2]],
+      getRadius: (_, { index }) => RADIO_POR_INDICE[datos[index * 3 + 2]],
+      radiusUnits: 'meters',
+      radiusMinPixels: 3,
+      radiusMaxPixels: 9,
+      stroked: true,
+      getLineColor: [255, 255, 255],
+      lineWidthMinPixels: 0.5,
+      updateTriggers: { getPosition: datos, getFillColor: datos, getRadius: datos },
     }),
     new TextLayer({
       id: 'nombres-puentes',
@@ -96,7 +118,7 @@ export default function MapaSanGil({ red, viaSeleccionada, onSeleccionarVia }) {
       initialViewState={VISTA_INICIAL}
       controller
       layers={capas}
-      onClick={(info) => onSeleccionarVia(info.object?.id ?? null)}
+      onClick={(info) => onSeleccionarVia(info.layer?.id === 'vias' ? info.object.id : null)}
       getCursor={({ isHovering }) => (isHovering ? 'pointer' : 'grab')}
     >
       <Map mapStyle={ESTILO_MAPA} />
