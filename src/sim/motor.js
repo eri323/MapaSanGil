@@ -11,7 +11,8 @@ import { convieneCambiar } from './mobil.js';
 import { crearDemanda, prepararPuntos } from './demanda.js';
 import { crearMetricas } from './metricas.js';
 import { arcoTransitable } from './red.js';
-import { ZONAS, SALIDAS } from '../escenarios/zonas.js';
+import { ZONAS, SALIDAS, CASCO_URBANO } from '../escenarios/zonas.js';
+import { arcosEnCasco, FLUJOS_RESTRINGIBLES, permitidoRestringido } from './restriccion.js';
 
 const DISTANCIA_DECISION = 60; // m: la vía con prioridad confirma el paso desde aquí
 const DISTANCIA_SEMAFORO = 30; // m: se mira el color del semáforo desde aquí
@@ -30,13 +31,15 @@ export function crearMotor(red, opciones = {}) {
   const {
     semilla = 1, dt = 0.5, umbralBloqueo = 180, intervaloReruteo = 90,
     demanda: configDemanda = {}, conDemanda = true, zonas = ZONAS, salidas = SALIDAS,
-    alCruzar = null, alTerminar = null,
+    alCruzar = null, alTerminar = null, casco = CASCO_URBANO, restriccionPesados = false,
   } = opciones;
 
   const aleatorio = crearAleatorio(semilla);
   const geometria = prepararGeometria(red);
   const tiempos = crearTiempos(red, geometria);
   const accesos = analizarAccesos(red, geometria);
+  let cascoArcos = arcosEnCasco(red, geometria, casco);
+  let restriccion = restriccionPesados;
   const metricas = crearMetricas();
   const puntos = prepararPuntos(red, zonas, salidas);
   const demanda = conDemanda ? crearDemanda(puntos, configDemanda, aleatorio) : null;
@@ -61,6 +64,18 @@ export function crearMotor(red, opciones = {}) {
   let siguienteId = 1;
 
   const costo = (arcoId) => (arcoTransitable(red, arcoId) ? tiempos.estimado(arcoId) : Infinity);
+  const costoRestringido = (arcoId) => (permitidoRestringido(red, cascoArcos, arcoId) ? tiempos.estimado(arcoId) : Infinity);
+
+  // Con la restricción activa, los pesados de paso solo usan Avenida y Variante
+  // por fuera del casco; si así no llegan (la Variante no conecta), pasan por
+  // el centro como hoy.
+  function rutaPara(veh, origen) {
+    if (restriccion && veh.restringible) {
+      const ruta = rutaMasRapida(red, origen, veh.destino, costoRestringido);
+      if (ruta) return ruta;
+    }
+    return rutaMasRapida(red, origen, veh.destino, costo);
+  }
 
   function frente(e) {
     let f = null;
@@ -86,8 +101,9 @@ export function crearMotor(red, opciones = {}) {
     return (e.largo - f.s) / Math.max(f.v, 0.5);
   }
 
-  function agregarVehiculo({ tipo, origen, destino, conductor }) {
-    const ruta = rutaMasRapida(red, origen, destino, costo);
+  function agregarVehiculo({ tipo, origen, destino, conductor, flujo = 'local' }) {
+    const restringible = FLUJOS_RESTRINGIBLES.has(flujo);
+    const ruta = rutaPara({ restringible, destino }, origen);
     if (!ruta || ruta.arcos.length === 0) {
       metricas.viajeImposible();
       return null;
@@ -100,7 +116,7 @@ export function crearMotor(red, opciones = {}) {
     }, 0);
     const veh = {
       id: siguienteId++, tipo, tipoIndice: TIPOS_VEHICULO.indexOf(tipo), perfil, conductor: cond,
-      ruta: ruta.arcos, i: 0, s: 0, v: 0, a: 0, carril: 0, destino,
+      ruta: ruta.arcos, i: 0, s: 0, v: 0, a: 0, carril: 0, destino, origen, flujo, restringible,
       tSalida: t, tEntradaArco: t, tiempoLibre,
       permiso: false, paroEnPare: false, esperaCruce: 0, quietoDesde: null, transferidoEn: -1,
       proximoReruteo: t + intervaloReruteo * (0.5 + aleatorio.siguiente()),
@@ -371,7 +387,7 @@ export function crearMotor(red, opciones = {}) {
       if (t < veh.proximoReruteo || veh.i >= veh.ruta.length - 1) continue;
       veh.proximoReruteo = t + intervaloReruteo;
       const desde = red.arcos.get(veh.ruta[veh.i]).hasta;
-      const nueva = rutaMasRapida(red, desde, veh.destino, costo);
+      const nueva = rutaPara(veh, desde);
       if (!nueva || nueva.arcos.length === 0) continue;
       if (nueva.arcos[0] !== veh.ruta[veh.i + 1] && veh.permiso) {
         // Cambiar de giro encima del cruce obligaría a frenar en seco: se
@@ -415,6 +431,11 @@ export function crearMotor(red, opciones = {}) {
     return [...acumulado].map(([viaId, { suma, n }]) => ({ viaId, ratio: Math.min(1, suma / n), vehiculos: n }));
   }
 
+  function configurarRestriccion(activa) {
+    restriccion = Boolean(activa);
+    for (const veh of vivos) if (veh.restringible) veh.proximoReruteo = t;
+  }
+
   function paso() {
     if (demanda) for (const viaje of demanda.generar(t, dt)) agregarVehiculo(viaje);
     intentarInsertar();
@@ -434,6 +455,8 @@ export function crearMotor(red, opciones = {}) {
 
   return {
     get t() { return t; },
+    get restriccion() { return restriccion; },
+    configurarRestriccion,
     dt,
     paso,
     avanzar(segundos) {

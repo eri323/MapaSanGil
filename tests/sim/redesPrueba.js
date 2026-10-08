@@ -77,3 +77,24 @@ export function redDosRutas() {
     viaEntre('md', nodos, 'm', 'd'),
   ]);
 }
+
+// La Avenida atraviesa el casco urbano (W–a–b–E); la Variante lo rodea por el
+// norte (W–v1–v2–E), más larga. El casco es un círculo de 600 m en (0, 0).
+const [lonCasco, latCasco] = punto(0, 0);
+export const CASCO_PRUEBA = { lon: lonCasco, lat: latCasco, radio: 600 };
+
+export function datosRodeo({ varianteEnObra = false } = {}) {
+  const nodos = { W: [-1500, 0], a: [-500, 0], b: [500, 0], E: [1500, 0], v1: [-1000, 1200], v2: [1000, 1200] };
+  const avenida = { tipo: 'avenida_nacional', sentido: 'ambos', velocidadMax: 50 };
+  const variante = { tipo: 'variante', sentido: 'ambos', velocidadMax: 60, enConstruccion: varianteEnObra };
+  return armarDatos(nodos, [
+    viaEntre('Wa', nodos, 'W', 'a', avenida),
+    viaEntre('ab', nodos, 'a', 'b', avenida),
+    viaEntre('bE', nodos, 'b', 'E', avenida),
+    viaEntre('Wv1', nodos, 'W', 'v1', variante),
+    viaEntre('v1v2', nodos, 'v1', 'v2', variante),
+    viaEntre('v2E', nodos, 'v2', 'E', variante),
+  ]);
+}
+
+export const redRodeo = (opciones) => crearRed(datosRodeo(opciones));
