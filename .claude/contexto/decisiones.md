@@ -21,3 +21,6 @@
 | 2026-10-08 | Vehículo quieto más de 180 s se retira y cuenta como bloqueo | Equivale al teleport de SUMO; métrica de colapso |
 | 2026-10-08 | Salidas del municipio declaradas a mano en `src/escenarios/zonas.js` | La detección automática daba 40 caminos rurales sin nombre |
 | 2026-10-08 | Restricción de pesados de paso se implementa en la etapa 3 | Va con "terminar la Variante" |
+| 2026-10-08 | Correcciones de campo sobre OSM en `scripts/datos/correccionesCampo.js`, aplicadas al generar la red | Datos que OSM no tiene; el editor (etapa 3) servirá para cambios de escenario |
+| 2026-10-08 | Calle 12 entre Carreras 10 y 11 habilitada, un sentido hacia la Carrera 11 | Dato de campo del usuario; en OSM figura peatonal |
+| 2026-10-08 | Plaza de mercado = Mercado cubierto (OSM node 5478495523); salida a Charalá agregada | Confirmado por el usuario |
