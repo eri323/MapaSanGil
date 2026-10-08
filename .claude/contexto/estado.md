@@ -11,7 +11,6 @@
   sentido, puentes, pares y fichas de solo lectura.
 
 ## Sigue
-- Confirmar con el usuario el puente 93347221 y si Hoja de Tabaco = Rojas Pinilla.
 - Escribir el plan de la etapa 2 (motor: vehículos, IDM, cruces, rutas, demanda).
 
 ## Revisión de la etapa 1: resuelta (rama fix/hallazgos-etapa-1)
@@ -22,16 +21,14 @@
 - URL de datos relativa a la base de la app.
 - Pendiente para la etapa 2: el motor debe leer `accesosConPare` (control por acceso).
 
-## Puentes (nombres en `scripts/datos/puentes.js`)
-| Way OSM | Nombre en OSM | Nombre común | Estado |
-|---|---|---|---|
-| 24670013 | Avenida Ragonessi | Hoja de Tabaco (Avenida) | confirmar si es el "Rojas Pinilla" de la base Python |
-| 507730974 | Calle 15 (bridge:name La Sagrada Familia) | Puente de la Calle 15 | ok |
-| 401818497 | Puente Bella Isla | Puente Bella Isla (el usuario lo asocia a Ragonessi) | ok |
-| 401818499 | Transversal San Gil - Mogotes | Puente del Guasca | ok |
-| 93347221 | Puente Bernardo Gómez Silva (al occidente) | ¿Carrera 1ª? | por confirmar |
-- Solo 3 vías cruzan el trazado del Fonce en OSM: 93347221, 507730974, 24670013.
-- La base Python decía que el Bernardo Gómez es el de la Cl 15; OSM lo pone al occidente.
+## Puentes (confirmados por el usuario; nombres en `scripts/datos/puentes.js`)
+| Way OSM | Nombre común | Nota |
+|---|---|---|
+| 24670013 | Rojas Pinilla / Hoja de Tabaco (Avenida) | la estructura es el way 1303782686 (man_made=bridge) |
+| 507730974 | Calle 15 | en OSM "La Sagrada Familia" |
+| 93347221 | Carrera 1ª | en OSM "Bernardo Gómez Silva" |
+| 401818497 | Bella Isla | |
+| 401818499 | Salida a Mogotes (Guasca) | |
 
 ## Hallazgos de la red real
 - Variante en OSM: way 1271241090, unos 2 km en obra; sus extremos quedan fuera del
