@@ -1,10 +1,15 @@
 # Estado del proyecto
 
-**Etapa actual:** 3 de 5 terminada — sigue la etapa 4 (escenarios, comparador, modo historia), 10 – 16 nov 2026
-**Plan activo:** ninguno; falta escribir el de la etapa 4
+**Etapa actual:** 4 de 5 terminada — sigue la etapa 5 (Cómo funciona, ajustes, Vercel), 17 – 22 nov 2026
+**Plan activo:** ninguno; falta escribir el de la etapa 5
 **Rama base:** `main` (GitHub: eri323/MapaSanGil); trabajo en ramas que salen de `main`
 
 ## Hecho
+- Etapa 4 completa: escenarios (guardar/cargar/exportar/importar, precargados), comparador
+  en worker aparte (promedio y rango, gráfica, mapa de diferencias) y modo historia.
+  Historia "Cómo mejora" medida en condiciones controladas (30 min × 2 semillas):
+  hoy 67 s → temporada alta 90 s → + puente 82 s → + Variante con restricción 57 s →
+  + vías arregladas 57 s (casi sin efecto con el supuesto de la Carrera 1ª).
 - Etapa 3 completa (rama `etapa-3`): editor en vivo — vías (cerrar, sentido, estado,
   superficie, velocidad, carriles), cruces (pare por acceso, prioridad, sin señal, semáforo),
   vías y puentes nuevos (detecta el Fonce), tramos de Variante, terminar obra, restricción de
@@ -21,8 +26,7 @@
   sentido, puentes, pares y fichas de solo lectura.
 
 ## Sigue
-- Escribir el plan de la etapa 4 (escenarios con nombre, exportar/importar, comparador en
-  modo rápido con varias semillas, modo historia).
+- Escribir el plan de la etapa 5 (pestaña "Cómo funciona", ajustes, publicación en Vercel).
 
 ## Revisión de la etapa 1: resuelta (rama fix/hallazgos-etapa-1)
 - Velocidad 0 de OSM se ignora; validación de ids únicos, longitud, velocidad, carriles y
@@ -49,5 +53,7 @@
 - El área descargada incluye vías rurales (251 km de doble sentido).
 
 ## Bloqueos / pendientes del usuario
+- Lista real de vías con huecos/destapadas (hoy la Carrera 1ª es un SUPUESTO en `scripts/datos/correccionesCampo.js`).
+- Confirmar o redibujar el trazado de la Variante y la ubicación del puente propuesto.
 - Trazar en el editor los tramos que faltan de la Variante (OSM solo trae 2 km con los extremos sueltos).
 - Lista de campo: vías con huecos, destapadas, sentidos únicos y pares reales.
