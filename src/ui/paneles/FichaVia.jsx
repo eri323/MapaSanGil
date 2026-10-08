@@ -19,7 +19,10 @@ export default function FichaVia({ via, onCerrar }) {
   return (
     <section className="panel ficha">
       <header>
-        <h2>{via.nombre || '(vía sin nombre)'}</h2>
+        <div>
+          <h2>{via.nombrePuente ?? (via.nombre || '(vía sin nombre)')}</h2>
+          {via.nombrePuente && via.nombre && <p className="subtitulo">En OSM: {via.nombre}</p>}
+        </div>
         <button type="button" onClick={onCerrar} aria-label="Cerrar ficha">×</button>
       </header>
       <dl>

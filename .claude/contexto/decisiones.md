@@ -12,3 +12,6 @@
 | 2026-10-08 | Dos terminales: Terminal de Transporte (buses nacionales) y Terminalito (intermunicipales) | Dato de campo del usuario |
 | 2026-10-08 | Datos de campo: arrancar con OSM + supuestos y corregir en el editor | No frenar el desarrollo esperando la lista |
 | 2026-10-08 | Un plan por etapa | La forma real de los datos de OSM condiciona el motor |
+| 2026-10-08 | `main` es la rama base; cada trabajo sale en su propia rama | Indicación del usuario |
+| 2026-10-08 | Nombres comunes de puentes en `scripts/datos/puentes.js`, por id de OSM | OSM usa otros nombres; manda el conocimiento de campo |
+| 2026-10-08 | El pare se guarda por acceso (`accesosConPare`), no solo por cruce | Un pare detiene a quien llega por esa vía, no a todo el cruce |

@@ -2,7 +2,7 @@
 
 **Etapa actual:** 1 de 5 terminada — sigue la etapa 2 (motor), 18 – 31 oct 2026
 **Plan activo:** ninguno; falta escribir el de la etapa 2
-**Rama:** `etapa-1` (pendiente de revisión con agentes y merge a `master`)
+**Rama base:** `main` (GitHub: eri323/MapaSanGil); trabajo en ramas que salen de `main`
 
 ## Hecho
 - Spec aprobado.
@@ -11,27 +11,32 @@
   sentido, puentes, pares y fichas de solo lectura.
 
 ## Sigue
-- Revisión de la rama `etapa-1` con agentes (pedido por el usuario).
+- Confirmar con el usuario el puente 93347221 y si Hoja de Tabaco = Rojas Pinilla.
 - Escribir el plan de la etapa 2 (motor: vehículos, IDM, cruces, rutas, demanda).
-- Revisar con el usuario qué vías salieron mal clasificadas en OSM.
 
-## Pendientes de la revisión de la etapa 1 (incluir en el plan de la etapa 2)
-- `maxspeed="0"` da velocidad 0 (`scripts/lib/clasificarVia.js`): devolver null si n ≤ 0.
-- `validarRed` no rechaza ids duplicados, `longitud ≤ 0`, `velocidadMax ≤ 0` ni `desde === hasta`.
-- El control de cruce es por nodo; el motor necesita control por acceso y un índice `entrantes` en `crearRed`.
-- El pare se asigna al extremo más cercano sin mirar el sentido de la vía.
-- La URL `/data/red-sangil.json` es absoluta; usar `import.meta.env.BASE_URL`.
-- Casos que hoy no aparecen en los datos: lazos unidos solo por su nodo de cierre se descartan;
-  tramos < 0,5 m se descartan en vez de unir nodos; glorieta con `oneway=no` se fuerza a un sentido;
-  `construir-red` no reporta alcanzabilidad dirigida.
+## Revisión de la etapa 1: resuelta (rama fix/hallazgos-etapa-1)
+- Velocidad 0 de OSM se ignora; validación de ids únicos, longitud, velocidad, carriles y
+  vías de un nodo a sí mismo; índice `entrantes`; `componentePrincipal` (ida y vuelta).
+- Pares por acceso (`accesosConPare`) y nunca en el cruce de salida; respeta `direction`.
+- Lazos se parten en vez de perderse; tramos < 0,5 m unen nodos; glorieta con oneway=no.
+- URL de datos relativa a la base de la app.
+- Pendiente para la etapa 2: el motor debe leer `accesosConPare` (control por acceso).
 
-## Hallazgos de la red real (para confirmar con el usuario)
-- La Variante SÍ está en OSM como obra: way 1271241090, unos 2 km.
-- El puente Rojas Pinilla no aparece con ese nombre. Candidato: puente de
-  la "Avenida Ragonessi" (way 24670013, 46 m, sobre la Avenida).
-- Puente Bernardo Gómez Silva: way 93347221 (88 m).
-- La doble calzada frente al Terminal sale como dos vías de un sentido
-  paralelas (OSM no trae la etiqueta de doble calzada).
+## Puentes (nombres en `scripts/datos/puentes.js`)
+| Way OSM | Nombre en OSM | Nombre común | Estado |
+|---|---|---|---|
+| 24670013 | Avenida Ragonessi | Hoja de Tabaco (Avenida) | confirmar si es el "Rojas Pinilla" de la base Python |
+| 507730974 | Calle 15 (bridge:name La Sagrada Familia) | Puente de la Calle 15 | ok |
+| 401818497 | Puente Bella Isla | Puente Bella Isla (el usuario lo asocia a Ragonessi) | ok |
+| 401818499 | Transversal San Gil - Mogotes | Puente del Guasca | ok |
+| 93347221 | Puente Bernardo Gómez Silva (al occidente) | ¿Carrera 1ª? | por confirmar |
+- Solo 3 vías cruzan el trazado del Fonce en OSM: 93347221, 507730974, 24670013.
+- La base Python decía que el Bernardo Gómez es el de la Cl 15; OSM lo pone al occidente.
+
+## Hallazgos de la red real
+- Variante en OSM: way 1271241090, unos 2 km en obra; sus extremos quedan fuera del
+  componente principal mientras esté en construcción (esperado).
+- La doble calzada frente al Terminal sale como dos vías de un sentido paralelas.
 - Solo 1 pare en OSM; el resto llega con la lista de campo.
 - El área descargada incluye vías rurales (251 km de doble sentido).
 

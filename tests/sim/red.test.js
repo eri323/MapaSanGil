@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validarRed, crearRed, arcoTransitable, alcanzables } from '../../src/sim/red.js';
+import { validarRed, crearRed, arcoTransitable, alcanzables, componentePrincipal } from '../../src/sim/red.js';
 
 const via = (id, desde, hasta, extra = {}) => ({
   id, osmId: 1, nombre: '', desde, hasta,
@@ -80,5 +80,51 @@ describe('alcanzables y arcos transitables', () => {
     const red = crearRed(datos({ bc: { enConstruccion: true } }));
     expect(arcoTransitable(red, 'bc>')).toBe(false);
     expect(alcanzables(red, 'a')).toEqual(new Set(['a', 'b']));
+  });
+});
+
+describe('validarRed · ids únicos y valores físicos', () => {
+  it('rechaza ids de nodo o de vía repetidos', () => {
+    const d = datos();
+    d.nodos.push({ id: 'a', lon: 1, lat: 1, control: 'sin_senal' });
+    d.vias.push(via('ab', 'b', 'c'));
+    const errores = validarRed(d).join('\n');
+    expect(errores).toContain('Nodo a: id repetido');
+    expect(errores).toContain('Vía ab: id repetido');
+  });
+
+  it('rechaza longitud, velocidad o carriles en cero y vías de un nodo a sí mismo', () => {
+    const d = datos();
+    d.vias[0].longitud = 0;
+    d.vias[0].velocidadMax = 0;
+    d.vias[0].carrilesPorSentido = 0;
+    d.vias[1].hasta = 'b';
+    const errores = validarRed(d).join('\n');
+    expect(errores).toContain('longitud');
+    expect(errores).toContain('velocidad');
+    expect(errores).toContain('carriles');
+    expect(errores).toContain('mismo nodo');
+  });
+
+  it('accesosConPare debe nombrar vías que llegan a ese nodo', () => {
+    const d = datos();
+    d.nodos[1].accesosConPare = ['ab'];
+    expect(validarRed(d)).toEqual([]);
+    d.nodos[1].accesosConPare = ['zzz'];
+    expect(validarRed(d).join('\n')).toContain('zzz');
+  });
+});
+
+describe('entrantes y componente principal', () => {
+  it('indexa los arcos que llegan a cada nodo', () => {
+    const red = crearRed(datos());
+    expect(red.entrantes.get('a')).toEqual([]);
+    expect(red.entrantes.get('b').sort()).toEqual(['ab>', 'bc<']);
+    expect(red.entrantes.get('c')).toEqual(['bc>']);
+  });
+
+  it('el componente principal deja por fuera los nodos de los que no se puede volver', () => {
+    // a -> b <-> c : desde b y c no se vuelve a a
+    expect(componentePrincipal(crearRed(datos()))).toEqual(new Set(['b', 'c']));
   });
 });

@@ -42,12 +42,14 @@ function leerVelocidad(valor) {
   const m = /^(\d+)\s*(mph)?$/.exec(String(valor ?? '').trim());
   if (!m) return null;
   const n = Number(m[1]);
+  if (n <= 0) return null; // una vía con velocidad 0 dejaría a los vehículos quietos para siempre
   return m[2] ? Math.round(n * 1.609) : n;
 }
 
 function leerSentido(tags, glorieta) {
   const oneway = tags.oneway;
   if (oneway === '-1' || oneway === 'reverse') return 'inverso';
+  if (oneway === 'no') return 'ambos';
   if (oneway === 'yes' || oneway === 'true' || oneway === '1' || glorieta) return 'adelante';
   return 'ambos';
 }
