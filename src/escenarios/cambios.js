@@ -152,7 +152,16 @@ function agregarViaNueva(datos, { id, puntos, extremos, atributos = {} }) {
   if (datos.vias.some((v) => v.id === id)) throw new Error(`Ya existe una vía con id ${id}`);
 
   const inicio = resolverExtremo(datos, extremos[0], `n-${id}-0`);
-  const fin = resolverExtremo(inicio.datos, extremos[1], `n-${id}-1`);
+  // Si los dos extremos caen sobre la misma vía, el primero ya la partió:
+  // el segundo se ubica en la mitad que le queda más cerca.
+  let extremoFin = extremos[1];
+  if (extremoFin.tipo === 'via' && extremoFin.via === extremos[0].via && inicio.nodo === `n-${id}-0`) {
+    const mitades = ['a', 'b'].map((lado) => inicio.datos.vias.find((v) => v.id === `${extremoFin.via}~${inicio.nodo}${lado}`));
+    const distancia = (v) => proyectarEnLinea(v.geometria, extremoFin.punto).distancia;
+    const cercana = distancia(mitades[0]) <= distancia(mitades[1]) ? mitades[0] : mitades[1];
+    extremoFin = { ...extremoFin, via: cercana.id };
+  }
+  const fin = resolverExtremo(inicio.datos, extremoFin, `n-${id}-1`);
   if (inicio.nodo === fin.nodo) throw new Error('La vía empieza y termina en el mismo cruce');
 
   const coordenada = (nodoId) => {

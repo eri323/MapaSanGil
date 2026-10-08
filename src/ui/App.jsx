@@ -132,7 +132,8 @@ export default function App() {
 
   useEffect(() => {
     const alPresionar = (e) => {
-      if (escribiendo()) return;
+      // Con un diálogo de confirmación abierto, los atajos no tocan el historial.
+      if (escribiendo() || edicion.pendiente || confirmarDescartar) return;
       const ctrl = e.ctrlKey || e.metaKey;
       if (ctrl && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); edicion.deshacer(); }
       else if (ctrl && (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey))) { e.preventDefault(); edicion.rehacer(); }

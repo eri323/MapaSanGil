@@ -91,3 +91,20 @@ describe('vía nueva', () => {
       .toThrow(/Ya existe/);
   });
 });
+
+describe('vía nueva con los dos extremos sobre la misma vía', () => {
+  it('parte la vía dos veces y queda una red válida', () => {
+    const datos = linea();
+    const p1 = punto(250, 0);
+    const p2 = punto(350, 0);
+    const r = aplicarCambio(datos, nueva(
+      [{ tipo: 'via', via: 't1', punto: p1 }, { tipo: 'via', via: 't1', punto: p2 }],
+      [p1, punto(300, 100), p2],
+    ));
+    expect(validarRed(r)).toEqual([]);
+    const v = r.vias.find((x) => x.id === 'nueva-1');
+    expect(v.desde).toBe('n-nueva-1-0');
+    expect(v.hasta).toBe('n-nueva-1-1');
+    expect(r.vias.filter((x) => x.id.startsWith('t1~'))).toHaveLength(3);
+  });
+});

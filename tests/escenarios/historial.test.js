@@ -37,3 +37,31 @@ describe('historial', () => {
     expect(deserializar(JSON.stringify({ version: 1, entradas: [e(1)], indice: 7 })).indice).toBe(1);
   });
 });
+
+import { recuperarHistorial, agregarValidado } from '../../src/escenarios/historial.js';
+import { datosRedLinea } from '../sim/redesPrueba.js';
+
+describe('historial validado contra la red', () => {
+  const cerrar = (via) => ({ cambio: { tipo: 'via', viaId: via, propiedades: { abierta: false } }, descripcion: `cerrar ${via}` });
+
+  it('al recuperar, conserva solo la parte que se puede aplicar, incluidos los pasos por rehacer', () => {
+    const base = datosRedLinea();
+    const guardado = serializar({ entradas: [cerrar('t0'), cerrar('t1'), cerrar('no-existe'), cerrar('t2')], indice: 1 });
+    const h = recuperarHistorial(base, guardado);
+    expect(h.entradas.map((e) => e.cambio.viaId)).toEqual(['t0', 't1']);
+    expect(h.indice).toBe(1);
+  });
+
+  it('un historial ilegible o que no aplica desde el inicio queda vacío', () => {
+    const base = datosRedLinea();
+    expect(recuperarHistorial(base, 'basura')).toEqual(HISTORIAL_VACIO);
+    expect(recuperarHistorial(base, serializar({ entradas: [cerrar('zzz')], indice: 0 }))).toEqual(HISTORIAL_VACIO);
+  });
+
+  it('agregar validado rechaza un cambio que ya no aplica sobre el historial actual', () => {
+    const base = datosRedLinea();
+    const h = agregar(HISTORIAL_VACIO, cerrar('t0'));
+    expect(agregarValidado(base, h, cerrar('t1')).indice).toBe(2);
+    expect(() => agregarValidado(base, h, cerrar('zzz'))).toThrow(/no existe/);
+  });
+});

@@ -3,19 +3,16 @@ import { aplicarCambio, aplicarCambios } from '../../escenarios/cambios.js';
 import { evaluarImpacto } from '../../escenarios/impacto.js';
 import {
   HISTORIAL_VACIO, agregar, deshacer as deshacerH, rehacer as rehacerH,
-  activos, puedeDeshacer, puedeRehacer, serializar, deserializar,
+  activos, puedeDeshacer, puedeRehacer, serializar, recuperarHistorial, agregarValidado,
 } from '../../escenarios/historial.js';
 import { ZONAS, SALIDAS } from '../../escenarios/zonas.js';
 
 const CLAVE = 'mapa-sangil:cambios';
 
-// Recupera el historial guardado en el navegador si todavía se puede aplicar.
+// Recupera el historial guardado en el navegador, solo la parte que todavía aplica.
 function leerGuardado(base) {
   try {
-    const h = deserializar(localStorage.getItem(CLAVE));
-    if (!h) return HISTORIAL_VACIO;
-    aplicarCambios(base, activos(h));
-    return h;
+    return recuperarHistorial(base, localStorage.getItem(CLAVE));
   } catch {
     return HISTORIAL_VACIO;
   }
@@ -62,8 +59,15 @@ export function useEdicion(base) {
     historial,
     aplicar,
     pendiente,
+    // El cambio se evaluó contra el historial de ese momento: se vuelve a validar.
     confirmar: () => {
-      if (pendiente) setHistorial((h) => agregar(h, pendiente.entrada));
+      if (pendiente) {
+        try {
+          setHistorial(agregarValidado(base, historial, pendiente.entrada));
+        } catch (err) {
+          setError(`No se pudo aplicar: ${err.message}`);
+        }
+      }
       setPendiente(null);
     },
     cancelar: () => setPendiente(null),

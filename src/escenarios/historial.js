@@ -26,3 +26,35 @@ export function deserializar(texto) {
     return null;
   }
 }
+
+// --- validación contra la red ------------------------------------------------
+
+import { aplicarCambio, aplicarCambios } from './cambios.js';
+import { crearRed } from '../sim/red.js';
+
+// Recupera un historial guardado conservando solo la parte que todavía se puede
+// aplicar sobre la red base, incluidos los pasos por rehacer. Si la red de OSM
+// cambió y un paso ya no aplica, desde ahí se descarta.
+export function recuperarHistorial(base, texto) {
+  const h = deserializar(texto);
+  if (!h) return HISTORIAL_VACIO;
+  let datos = base;
+  const validas = [];
+  for (const entrada of h.entradas) {
+    try {
+      datos = aplicarCambio(datos, entrada.cambio);
+      crearRed(datos);
+    } catch {
+      break;
+    }
+    validas.push(entrada);
+  }
+  return validas.length ? { entradas: validas, indice: Math.min(h.indice, validas.length) } : HISTORIAL_VACIO;
+}
+
+// Agrega una entrada solo si el historial resultante produce una red válida.
+export function agregarValidado(base, h, entrada) {
+  const nuevo = agregar(h, entrada);
+  crearRed(aplicarCambios(base, activos(nuevo)));
+  return nuevo;
+}
