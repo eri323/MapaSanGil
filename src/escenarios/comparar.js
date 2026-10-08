@@ -41,7 +41,9 @@ export function correrEscenario(base, escenario, { semilla = 1, duracion = 1800,
   return { resumen: motor.resumen(), serie, vias };
 }
 
-export function resumirCorridas(nombre, corridas) {
+// `datos` es la red del escenario: así se cuentan también sus vías nuevas
+// (un puente propuesto o los tramos de la Variante) que no están en la red base.
+export function resumirCorridas(nombre, corridas, datos = { vias: [] }) {
   const metricas = {};
   for (const clave of METRICAS_COMPARADAS) {
     const valores = corridas.map((c) => c.resumen[clave]);
@@ -63,7 +65,15 @@ export function resumirCorridas(nombre, corridas) {
   }
   const vias = {};
   for (const [viaId, { ratio, uso }] of sumas) vias[viaId] = { ratio: ratio / corridas.length, uso: uso / corridas.length };
-  return { nombre, metricas, serie, vias };
+  const usoClave = { puentes: 0, variante: 0 };
+  for (const v of datos.vias) {
+    const uso = vias[v.id]?.uso ?? 0;
+    if (v.esPuente) usoClave.puentes += uso;
+    if (v.tipo === 'variante') usoClave.variante += uso;
+  }
+  usoClave.puentes = Math.round(usoClave.puentes);
+  usoClave.variante = Math.round(usoClave.variante);
+  return { nombre, metricas, serie, vias, usoClave };
 }
 
 export function compararEscenarios(base, escenarios, { semillas = [1, 2, 3], duracion = 1800, alProgreso = () => {} } = {}) {
@@ -77,7 +87,7 @@ export function compararEscenarios(base, escenarios, { semillas = [1, 2, 3], dur
       alProgreso(hechos, total);
       return corrida;
     });
-    return resumirCorridas(escenario.nombre, corridas);
+    return resumirCorridas(escenario.nombre, corridas, datos);
   });
   return { duracion, semillas, resultados };
 }

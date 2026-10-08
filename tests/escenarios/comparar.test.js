@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  correrEscenario, compararEscenarios, variacion, diferenciasPorVia, METRICAS_COMPARADAS,
+  correrEscenario, compararEscenarios, variacion, diferenciasPorVia, METRICAS_COMPARADAS, resumirCorridas,
 } from '../../src/escenarios/comparar.js';
 import { crearEscenario } from '../../src/escenarios/escenario.js';
 import { datosRedLinea } from '../sim/redesPrueba.js';
@@ -76,4 +76,13 @@ describe('comparar en San Gil', () => {
     ], { semillas: [1, 2], duracion: 900 });
     expect(variacion(r.resultados[0], r.resultados[1], 'demoraMedia')).toBeGreaterThan(0);
   }, 300000);
+});
+
+describe('uso de puentes y Variante con la red de cada escenario', () => {
+  it('cuenta las vías nuevas del escenario, aunque no existan en la red base', () => {
+    const corrida = { resumen: Object.fromEntries(METRICAS_COMPARADAS.map((m) => [m, 0])), serie: [], vias: new Map([['puente-nuevo', { ratio: 1, uso: 7 }], ['t0', { ratio: 1, uso: 3 }], ['var', { ratio: 1, uso: 5 }]]) };
+    const datos = { vias: [{ id: 'puente-nuevo', esPuente: true, tipo: 'doble_sentido' }, { id: 't0', esPuente: false, tipo: 'un_sentido' }, { id: 'var', esPuente: false, tipo: 'variante' }] };
+    const r = resumirCorridas('Con puente', [corrida], datos);
+    expect(r.usoClave).toEqual({ puentes: 7, variante: 5 });
+  });
 });

@@ -8,7 +8,7 @@ import { aplicarCambio } from '../escenarios/cambios.js';
 import { activos } from '../escenarios/historial.js';
 import {
   crearEscenario, exportarEscenario, importarEscenario, nombreArchivo,
-  leerEscenarios, guardarEscenario, borrarEscenario, CLAVE_ESCENARIOS,
+  leerEscenarios, guardarEscenario, borrarEscenario, CLAVE_ESCENARIOS, esEstadoConocido,
 } from '../escenarios/escenario.js';
 import { construirPrecargados } from '../escenarios/precargados.js';
 import { diferenciasPorVia } from '../escenarios/comparar.js';
@@ -39,6 +39,11 @@ import './estilos.css';
 
 const CONFIG_INICIAL = { factor: 1, temporada: 1, horaInicio: 7 };
 const SIN_VEHICULOS = { cantidad: 0, datos: new Float64Array(0), t: 0 };
+const NOMBRE_AUTOGUARDADO = 'Mis cambios (guardado automático)';
+
+// La gráfica de la historia solo necesita las métricas; las vías ocupan mucho.
+const soloMetricas = (r) => ({ ...r, resultados: r.resultados.map(({ nombre, metricas }) => ({ nombre, metricas })) });
+
 const PESTANAS = [['editar', 'Editar'], ['escenarios', 'Escenarios'], ['comparar', 'Comparar'], ['historia', 'Historia']];
 
 function conectaAlrededor(datos) {
@@ -99,7 +104,8 @@ export default function App() {
   const [diferenciasDe, setDiferenciasDe] = useState(null);
   const [historia, setHistoria] = useState(null); // { historia, indice, controlado }
   const [progresoHistoria, setProgresoHistoria] = useState({ hechos: 0, total: 0 });
-  const destinoComparacion = useRef('comparar'); // a quién va el próximo resultado del comparador
+  const comparadorHistoria = useRef(null); // worker aparte para la comparación controlada de la historia
+  const pedidoHistoria = useRef(null); // { nombre, clave } de la historia que se está calculando
   const cliente = useRef(null);
   const comparador = useRef(null);
   const datosEnviados = useRef(null);
@@ -108,6 +114,10 @@ export default function App() {
   const variante = useMemo(() => (datos ? estadoDeLaVariante(datos) : null), [datos]);
   const precargados = useMemo(() => (base && rios ? construirPrecargados(base, rios) : null), [base, rios]);
   const todosLosEscenarios = useMemo(() => [...(precargados?.escenarios ?? []), ...guardados], [precargados, guardados]);
+  const escenariosConocidos = useMemo(
+    () => [...todosLosEscenarios, ...(precargados?.historias ?? []).flatMap((h) => h.pasos.map((p) => p.escenario))],
+    [todosLosEscenarios, precargados],
+  );
   const diferencias = useMemo(() => {
     if (!comparacion || !diferenciasDe) return null;
     const otro = comparacion.resultados.find((r) => r.nombre === diferenciasDe);
@@ -126,20 +136,30 @@ export default function App() {
   // Worker del comparador: uno para toda la sesión.
   useEffect(() => {
     const c = crearClienteComparador((mensaje) => {
-      const paraHistoria = destinoComparacion.current === 'historia';
+      if (mensaje.tipo === 'progreso') setProgreso({ hechos: mensaje.hechos, total: mensaje.total });
+      else if (mensaje.tipo === 'resultado') { setComparacion(mensaje.resultado); setComparando(false); setDiferenciasDe(null); }
+      else if (mensaje.tipo === 'error') { edicion.mostrarError(`El comparador falló: ${mensaje.mensaje}`); setComparando(false); }
+    });
+    // Cada resultado de la historia se guarda con la clave y el nombre del pedido
+    // que lo originó, no con los de la historia que esté abierta al llegar.
+    const ch = crearClienteComparador((mensaje) => {
+      const pedido = pedidoHistoria.current;
+      if (!pedido) return;
       if (mensaje.tipo === 'progreso') {
-        (paraHistoria ? setProgresoHistoria : setProgreso)({ hechos: mensaje.hechos, total: mensaje.total });
-      } else if (mensaje.tipo === 'resultado' && paraHistoria) {
-        setHistoria((h) => (h ? { ...h, controlado: mensaje.resultado } : h));
-        guardarControlado(mensaje.resultado);
+        setProgresoHistoria({ hechos: mensaje.hechos, total: mensaje.total });
       } else if (mensaje.tipo === 'resultado') {
-        setComparacion(mensaje.resultado); setComparando(false); setDiferenciasDe(null);
+        const controlado = soloMetricas(mensaje.resultado);
+        try { localStorage.setItem(pedido.clave, JSON.stringify(controlado)); } catch { /* sin almacenamiento */ }
+        setHistoria((h) => (h && h.historia.nombre === pedido.nombre ? { ...h, controlado } : h));
+        pedidoHistoria.current = null;
       } else if (mensaje.tipo === 'error') {
-        edicion.mostrarError(`El comparador falló: ${mensaje.mensaje}`); setComparando(false);
+        edicion.mostrarError(`No se pudo calcular la comparación de la historia: ${mensaje.mensaje}`);
+        pedidoHistoria.current = null;
       }
     });
     comparador.current = c;
-    return () => c.terminar();
+    comparadorHistoria.current = ch;
+    return () => { c.terminar(); ch.terminar(); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Worker de la simulación: se crea cuando la red está lista y en cada reinicio.
@@ -176,7 +196,12 @@ export default function App() {
   // Carga un escenario sobre la simulación en curso. La hora de inicio solo
   // cambia (y reinicia) si se pide, para no reiniciar en mitad de una historia.
   const aplicarEscenarioEnVivo = (escenario, { permitirReinicio = true } = {}) => {
+    // Si hay ediciones propias que no son de ningún escenario, se guardan antes de reemplazarlas.
+    const actuales = edicion.historial.entradas.slice(0, edicion.historial.indice);
+    const guardarAntes = !esEstadoConocido(actuales, escenariosConocidos);
+    if (guardarAntes) setGuardados((l) => guardarEscenario(l, escenarioActual(NOMBRE_AUTOGUARDADO)));
     if (!edicion.cargar(escenario.entradas)) return false;
+    if (guardarAntes) edicion.mostrarError(`Tus cambios se guardaron en «${NOMBRE_AUTOGUARDADO}» (pestaña Escenarios) antes de cargar «${escenario.nombre}».`);
     const reiniciar = permitirReinicio && escenario.demanda.horaInicio !== config.horaInicio;
     const demanda = permitirReinicio ? escenario.demanda : { ...escenario.demanda, horaInicio: config.horaInicio };
     setConfig(demanda);
@@ -200,22 +225,25 @@ export default function App() {
   };
 
   // Los resultados controlados de una historia se guardan por red, para no recalcularlos.
-  const claveControlado = (h) => `mapa-sangil:historia:${h.nombre}:${base?.generado}`;
-  const guardarControlado = (resultado) => {
-    try { localStorage.setItem(claveHistoriaActual.current, JSON.stringify(resultado)); } catch { /* sin almacenamiento */ }
+  const claveControlado = (h) => `mapa-sangil:historia:v1:${h.nombre}:${base?.generado}`;
+
+  const salirHistoria = () => {
+    comparadorHistoria.current?.cancelar();
+    pedidoHistoria.current = null;
+    setHistoria(null);
   };
-  const claveHistoriaActual = useRef(null);
 
   const empezarHistoria = (h) => {
-    claveHistoriaActual.current = claveControlado(h);
+    const clave = claveControlado(h);
     let controlado = null;
-    try { controlado = JSON.parse(localStorage.getItem(claveHistoriaActual.current)); } catch { controlado = null; }
+    try { controlado = JSON.parse(localStorage.getItem(clave)); } catch { controlado = null; }
+    comparadorHistoria.current.cancelar();
+    pedidoHistoria.current = null;
     if (!controlado || controlado.resultados?.length !== h.pasos.length) {
       controlado = null;
-      destinoComparacion.current = 'historia';
-      setComparando(false);
+      pedidoHistoria.current = { nombre: h.nombre, clave };
       setProgresoHistoria({ hechos: 0, total: h.pasos.length * 2 });
-      comparador.current.comparar(base, h.pasos.map((p) => p.escenario), { duracion: 1800, semillas: [1, 2] });
+      comparadorHistoria.current.comparar(base, h.pasos.map((p) => p.escenario), { duracion: 1800, semillas: [1, 2] });
     }
     setHistoria({ historia: h, indice: 0, controlado });
     aplicarEscenarioEnVivo(h.pasos[0].escenario, { permitirReinicio: false });
@@ -251,7 +279,7 @@ export default function App() {
       else if (ctrl && (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey))) { e.preventDefault(); edicion.rehacer(); }
       else if (e.key === 'Escape') {
         if (modo === 'dibujar') cancelarDibujo();
-        else if (historia) setHistoria(null);
+        else if (historia) salirHistoria();
         else setSeleccion(null);
       }
     };
@@ -319,7 +347,6 @@ export default function App() {
         progreso={progreso}
         corriendo={comparando}
         onComparar={(escenarios, opciones) => {
-          destinoComparacion.current = 'comparar';
           setComparando(true);
           setProgreso({ hechos: 0, total: escenarios.length * opciones.semillas.length });
           comparador.current.comparar(base, escenarios, opciones);
@@ -384,7 +411,7 @@ export default function App() {
             demoraAhora={resumen?.demoraReciente}
             onAnterior={() => irAPaso(historia.indice - 1)}
             onSiguiente={() => irAPaso(historia.indice + 1)}
-            onSalir={() => setHistoria(null)}
+            onSalir={salirHistoria}
           />
         )}
         <aside className="lateral lateral-izq">

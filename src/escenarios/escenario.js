@@ -86,3 +86,11 @@ export function leerEscenarios(texto) {
 
 export const guardarEscenario = (lista, e) => [...lista.filter((x) => x.nombre !== e.nombre), e];
 export const borrarEscenario = (lista, nombre) => lista.filter((x) => x.nombre !== nombre);
+
+// ¿Los cambios actuales son exactamente los de algún escenario conocido? Si no,
+// son ediciones propias que se perderían al cargar otro escenario.
+export function esEstadoConocido(entradas, escenarios) {
+  if (!entradas.length) return true;
+  const firma = JSON.stringify(entradas.map((e) => e.cambio));
+  return escenarios.some((e) => JSON.stringify(e.entradas.map((x) => x.cambio)) === firma);
+}

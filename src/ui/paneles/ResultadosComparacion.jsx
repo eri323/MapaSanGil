@@ -14,8 +14,6 @@ export default function ResultadosComparacion({ comparacion, red, onCerrar, onVe
     for (const r of resultados) fila[r.nombre] = Math.round(r.serie[i]?.demoraReciente ?? 0);
     return fila;
   });
-  const clave = [...red.vias.values()].filter((v) => v.nombrePuente || v.tipo === 'variante');
-  const usoClave = (r, filtro) => Math.round(clave.filter(filtro).reduce((s, v) => s + (r.vias[v.id]?.uso ?? 0), 0));
 
   return (
     <section className="panel resultados">
@@ -50,11 +48,11 @@ export default function ResultadosComparacion({ comparacion, red, onCerrar, onVe
             ))}
             <tr>
               <th>Pasos por puentes</th>
-              {resultados.map((r) => <td key={r.nombre}>{usoClave(r, (v) => v.esPuente)}</td>)}
+              {resultados.map((r) => <td key={r.nombre}>{r.usoClave?.puentes ?? '—'}</td>)}
             </tr>
             <tr>
               <th>Pasos por la Variante</th>
-              {resultados.map((r) => <td key={r.nombre}>{usoClave(r, (v) => v.tipo === 'variante')}</td>)}
+              {resultados.map((r) => <td key={r.nombre}>{r.usoClave?.variante ?? '—'}</td>)}
             </tr>
           </tbody>
         </table>

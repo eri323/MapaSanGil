@@ -65,3 +65,17 @@ describe('almacén de escenarios', () => {
     expect(leerEscenarios(JSON.stringify([valido, { nombre: '' }]))).toEqual([valido]);
   });
 });
+
+import { esEstadoConocido } from '../../src/escenarios/escenario.js';
+
+describe('esEstadoConocido', () => {
+  const e1 = crearEscenario({ nombre: 'Uno', entradas: [cerrar('t1')] });
+  it('sin cambios, o con los mismos cambios de un escenario conocido, no hay nada que perder', () => {
+    expect(esEstadoConocido([], [e1])).toBe(true);
+    expect(esEstadoConocido([cerrar('t1')], [e1])).toBe(true);
+  });
+  it('cambios propios que no son de ningún escenario sí se perderían', () => {
+    expect(esEstadoConocido([cerrar('t2')], [e1])).toBe(false);
+    expect(esEstadoConocido([cerrar('t1'), cerrar('t2')], [e1])).toBe(false);
+  });
+});
