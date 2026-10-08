@@ -12,6 +12,12 @@ export const COLOR_TIPO = {
 export const COLOR_PUENTE = [241, 196, 15];
 export const COLOR_PARE = [192, 57, 43];
 export const COLOR_SELECCION = [20, 20, 20];
+export const COLOR_CERRADA = [150, 150, 150];
+export const COLOR_SEMAFORO = [39, 174, 96];
+export const COLOR_CRUCE = [120, 130, 140];
+export const COLOR_DIBUJO = [230, 126, 34];
+export const COLOR_AJUSTE = { nodo: [39, 174, 96], via: [41, 128, 185], libre: [120, 120, 120] };
+export const EXTRA_DOBLE_CALZADA = 4;
 
 export const ANCHO_TIPO = {
   avenida_nacional: 7,
@@ -23,7 +29,7 @@ export const ANCHO_TIPO = {
 };
 
 export const colorVia = (via) => COLOR_TIPO[via.tipo];
-export const anchoVia = (via) => ANCHO_TIPO[via.tipo];
+export const anchoVia = (via) => ANCHO_TIPO[via.tipo] + (via.dobleCalzada ? EXTRA_DOBLE_CALZADA : 0);
 
 export function flechasDeVias(vias, { longitudMinima = 25 } = {}) {
   const flechas = [];
