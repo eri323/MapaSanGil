@@ -11,3 +11,4 @@
 - Etapa 1 completa en la rama `etapa-1`.
 - Repo conectado a GitHub (eri323/MapaSanGil); `main` es la base.
 - Hallazgos de la revisión resueltos con TDD (62 pruebas); puentes con nombre común.
+- Nombres de los 5 puentes confirmados por el usuario; spec corregido.

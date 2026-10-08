@@ -41,9 +41,15 @@ y el editor que hoy pone SUMO o que no existen.
 
 ## 2. Contexto del dominio
 
-- **Río Fonce** como cuello de botella. Cruces: puente **Gustavo Rojas Pinilla**
-  (principal, sobre la vía nacional) y puente **Bernardo Gómez Silva** (Cl 15,
-  respaldo urbano).
+- **Río Fonce** como cuello de botella. Puentes vehiculares, con nombres
+  confirmados por el usuario (2026-10-08; ids en `scripts/datos/puentes.js`):
+  - **Rojas Pinilla** o "de la Hoja de Tabaco": principal, sobre la Avenida.
+  - **Calle 15** (en OSM "La Sagrada Familia"): respaldo urbano en el centro.
+  - **Carrera 1ª** (en OSM "Bernardo Gómez Silva"): al occidente.
+  - **Bella Isla**: conecta el barrio Bella Isla.
+  - **Salida a Mogotes** (Guasca).
+  La base Python llamaba "Bernardo Gómez Silva" al de la Calle 15; según OSM
+  ese nombre corresponde al de la Carrera 1ª.
 - **Variante de San Gil**: inconclusa. Abscisado K0+000 a K9+500, puente sobre el
   Fonce entre K2+300 y K2+660 (ficha de Santander Competitivo). Se traza
   aproximada y se marca "en construcción".
