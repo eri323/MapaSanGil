@@ -6,12 +6,14 @@
 const FRENADO_MAXIMO = -9; // m/s², límite físico de un frenado de emergencia
 
 export function aceleracionIDM(perfil, v, v0, gap, vLider) {
-  const terminoLibre = 1 - (v / v0) ** 4;
-  if (!Number.isFinite(gap)) return perfil.a * terminoLibre;
+  // Si va más rápido de lo que quiere (entró a una vía más lenta), el término
+  // libre se vuelve enorme; se limita al frenado cómodo, como hace un conductor.
+  const libre = Math.max(-perfil.b, perfil.a * (1 - (v / v0) ** 4));
+  if (!Number.isFinite(gap)) return libre;
   const deseada = perfil.s0
     + Math.max(0, v * perfil.T + (v * (v - vLider)) / (2 * Math.sqrt(perfil.a * perfil.b)));
   const s = Math.max(gap, 0.01);
-  return Math.max(FRENADO_MAXIMO, perfil.a * (terminoLibre - (deseada / s) ** 2));
+  return Math.max(FRENADO_MAXIMO, libre - perfil.a * (deseada / s) ** 2);
 }
 
 // Avance de un paso con aceleración constante. Si el frenado lo detiene antes

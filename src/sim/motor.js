@@ -18,6 +18,7 @@ const DISTANCIA_SEMAFORO = 30; // m: se mira el color del semáforo desde aquí
 const MARGEN_CEDER = 8; // m sobre s0: quien cede evalúa el hueco ya en la línea
 const DISTANCIA_SIN_CAMBIO = 15; // m antes del cruce en que ya no se cambia de carril
 const ANCHO_CARRIL = 3.2;
+const DISTANCIA_LLEGADA = 40; // m: un vehículo con permiso a esta distancia ya "viene entrando"
 
 function insertarOrdenado(lista, veh) {
   const k = lista.findIndex((otro) => otro.s < veh.s);
@@ -51,6 +52,7 @@ export function crearMotor(red, opciones = {}) {
   }
 
   const ocupadoHasta = new Map();
+  const llegandoA = new Set(); // arcos a los que un vehículo con permiso está por entrar
   const usoVias = new Map();
   const pendientes = [];
   const vivos = new Set();
@@ -112,7 +114,8 @@ export function crearMotor(red, opciones = {}) {
     for (const veh of pendientes) {
       const e = estadoArco.get(veh.ruta[0]);
       let carril = -1;
-      if (arcoTransitable(red, e.id)) {
+      // No se inserta un viaje nuevo delante de alguien que ya viene entrando al arco.
+      if (arcoTransitable(red, e.id) && !llegandoA.has(e.id)) {
         for (let c = 0; c < e.carriles.length; c++) {
           const ult = e.carriles[c].at(-1);
           if (!ult || ult.s - ult.perfil.largo >= veh.perfil.s0 + 1) { carril = c; break; }
@@ -162,13 +165,24 @@ export function crearMotor(red, opciones = {}) {
       }
     }
     if (veh.permiso) {
+      if (distLinea < DISTANCIA_LLEGADA) llegandoA.add(siguienteArco);
       const v0Siguiente = velocidadDeseada(veh.perfil, sig.via, veh.conductor);
-      return { gap: distLinea + espacio, vLider: ult ? ult.v : v0Siguiente };
+      let gap = distLinea + espacio;
+      let vLider = ult ? ult.v : v0Siguiente;
+      // Si el arco siguiente termina en un cruce donde quizá deba detenerse, su
+      // línea también cuenta: así frena a tiempo antes de un tramo muy corto.
+      const sigEsElUltimo = veh.i + 1 === veh.ruta.length - 1;
+      if (!sigEsElUltimo && accesos.get(siguienteArco).tipo !== 'prioridad') {
+        const lineaSiguiente = distLinea + Math.max(sig.largo, veh.perfil.s0 + 1);
+        if (lineaSiguiente < gap) { gap = lineaSiguiente; vLider = 0; }
+      }
+      return { gap, vLider };
     }
     return { gap: distLinea, vLider: 0 };
   }
 
   function calcularAceleraciones() {
+    llegandoA.clear();
     for (const e of estadoArco.values()) {
       for (const carril of e.carriles) {
         for (let k = 0; k < carril.length; k++) {
@@ -215,12 +229,39 @@ export function crearMotor(red, opciones = {}) {
     }
   }
 
+  // Carril de llegada con más espacio libre al inicio; ante empate, el que
+  // corresponde al carril en que venía.
+  function carrilConMasEspacio(e, preferido) {
+    let mejor = null;
+    const propio = Math.min(preferido, e.carriles.length - 1);
+    for (let c = 0; c < e.carriles.length; c++) {
+      const ultimo = e.carriles[c].at(-1) ?? null;
+      const espacio = ultimo ? ultimo.s - ultimo.perfil.largo : Infinity;
+      if (!mejor || espacio > mejor.espacio || (espacio === mejor.espacio && c === propio)) {
+        mejor = { carril: c, espacio, ultimo };
+      }
+    }
+    return mejor;
+  }
+
   function transferir() {
     for (const e of estadoArco.values()) {
       for (const carril of e.carriles) {
         while (carril.length && carril[0].s >= e.largo && carril[0].transferidoEn !== pasos) {
-          const veh = carril.shift();
+          const veh = carril[0];
           const instante = t + dt;
+          let destino = null;
+          if (veh.i < veh.ruta.length - 1) {
+            // Entra al carril con más espacio; si el espacio medido antes ya lo
+            // ocupó otro que entró en este mismo paso, espera en la línea.
+            destino = carrilConMasEspacio(estadoArco.get(veh.ruta[veh.i + 1]), veh.carril);
+            if (destino.espacio < veh.s - e.largo + 0.1) {
+              veh.s = e.largo - 0.1;
+              veh.v = Math.min(veh.v, destino.ultimo?.v ?? 0);
+              break;
+            }
+          }
+          carril.shift();
           tiempos.registrar(e.id, instante - veh.tEntradaArco);
           usoVias.set(e.via.id, (usoVias.get(e.via.id) ?? 0) + 1);
 
@@ -240,7 +281,7 @@ export function crearMotor(red, opciones = {}) {
           veh.i += 1;
           const sig = estadoArco.get(veh.ruta[veh.i]);
           veh.s = Math.min(sobrante, sig.largo - 0.1);
-          veh.carril = Math.min(veh.carril, sig.carriles.length - 1);
+          veh.carril = destino.carril;
           veh.permiso = false;
           veh.paroEnPare = false;
           veh.esperaCruce = 0;
@@ -332,7 +373,16 @@ export function crearMotor(red, opciones = {}) {
       const desde = red.arcos.get(veh.ruta[veh.i]).hasta;
       const nueva = rutaMasRapida(red, desde, veh.destino, costo);
       if (!nueva || nueva.arcos.length === 0) continue;
-      if (nueva.arcos[0] !== veh.ruta[veh.i + 1]) veh.permiso = false;
+      if (nueva.arcos[0] !== veh.ruta[veh.i + 1] && veh.permiso) {
+        // Cambiar de giro encima del cruce obligaría a frenar en seco: se
+        // vuelve a intentar después de cruzar.
+        const distLinea = estadoArco.get(veh.ruta[veh.i]).largo - veh.s;
+        if (distLinea < veh.v ** 2 / (2 * veh.perfil.b) + veh.perfil.s0) {
+          veh.proximoReruteo = t + 2;
+          continue;
+        }
+        veh.permiso = false;
+      }
       veh.ruta = veh.ruta.slice(0, veh.i + 1).concat(nueva.arcos);
     }
   }

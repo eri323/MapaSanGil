@@ -58,3 +58,10 @@ describe('avanzar', () => {
     expect(r.dx).toBeCloseTo(1 / 18, 6);
   });
 });
+
+describe('aceleracionIDM · más rápido que la velocidad deseada', () => {
+  it('al entrar a una vía más lenta sin nadie adelante frena con suavidad, no en seco', () => {
+    expect(aceleracionIDM(carro, 14, 3, Infinity, 14)).toBeGreaterThanOrEqual(-carro.b);
+    expect(aceleracionIDM(carro, 14, 3, 50, 14)).toBeGreaterThanOrEqual(-9);
+  });
+});
