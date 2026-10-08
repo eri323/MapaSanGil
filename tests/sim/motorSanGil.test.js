@@ -31,13 +31,15 @@ describe('motor en San Gil', () => {
     expect(r.viajesCompletados).toBeGreaterThan(50);
     expect(r.enRed).toBeGreaterThan(20);
     expect(r.bloqueos).toBeLessThan(r.viajesCompletados * 0.2);
-    const { bbox } = datos;
+    // Dentro de la extensión de la red (algunas vías, como la de Charalá, salen del área descargada).
+    const lons = datos.nodos.map((n) => n.lon);
+    const lats = datos.nodos.map((n) => n.lat);
     const { cantidad, datos: pos } = motor.posiciones();
     for (let k = 0; k < cantidad; k++) {
-      expect(pos[k * 3]).toBeGreaterThan(bbox.oeste - 0.05);
-      expect(pos[k * 3]).toBeLessThan(bbox.este + 0.05);
-      expect(pos[k * 3 + 1]).toBeGreaterThan(bbox.sur - 0.05);
-      expect(pos[k * 3 + 1]).toBeLessThan(bbox.norte + 0.05);
+      expect(pos[k * 3]).toBeGreaterThanOrEqual(Math.min(...lons) - 0.001);
+      expect(pos[k * 3]).toBeLessThanOrEqual(Math.max(...lons) + 0.001);
+      expect(pos[k * 3 + 1]).toBeGreaterThanOrEqual(Math.min(...lats) - 0.001);
+      expect(pos[k * 3 + 1]).toBeLessThanOrEqual(Math.max(...lats) + 0.001);
     }
   }, 180000);
 
