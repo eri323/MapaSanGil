@@ -112,7 +112,77 @@ function limpiarPares(datos) {
   };
 }
 
-// --- vías nuevas (Task 3) ---------------------------------------------------
+// --- vías nuevas -----------------------------------------------------------
+
+function partirVia(datos, viaId, punto, nodoNuevo) {
+  const via = exigirVia(datos, viaId);
+  const { punto: p, segmento } = proyectarEnLinea(via.geometria, punto);
+  if (distanciaMetros(p, via.geometria[0]) < DISTANCIA_EXTREMO) return { datos, nodo: via.desde };
+  if (distanciaMetros(p, via.geometria.at(-1)) < DISTANCIA_EXTREMO) return { datos, nodo: via.hasta };
+
+  const g1 = [...via.geometria.slice(0, segmento + 1), p];
+  const g2 = [p, ...via.geometria.slice(segmento + 1)];
+  const a = { ...via, id: `${via.id}~${nodoNuevo}a`, hasta: nodoNuevo, geometria: g1, longitud: redondear(longitudLinea(g1)) };
+  const b = { ...via, id: `${via.id}~${nodoNuevo}b`, desde: nodoNuevo, geometria: g2, longitud: redondear(longitudLinea(g2)) };
+
+  const nodos = datos.nodos.map((n) => {
+    if (!n.accesosConPare?.includes(via.id)) return n;
+    const mitad = n.id === via.hasta ? b.id : a.id;
+    return { ...n, accesosConPare: n.accesosConPare.map((id) => (id === via.id ? mitad : id)) };
+  });
+  nodos.push({ id: nodoNuevo, lon: p[0], lat: p[1], control: 'sin_senal' });
+  const vias = datos.vias.flatMap((v) => (v.id === via.id ? [a, b] : [v]));
+  return { datos: { ...datos, nodos, vias }, nodo: nodoNuevo };
+}
+
+function resolverExtremo(datos, extremo, nodoNuevo) {
+  if (extremo.tipo === 'nodo') {
+    if (!datos.nodos.some((n) => n.id === extremo.nodo)) throw new Error(`El cruce ${extremo.nodo} no existe`);
+    return { datos, nodo: extremo.nodo };
+  }
+  if (extremo.tipo === 'via') return partirVia(datos, extremo.via, extremo.punto, nodoNuevo);
+  const [lon, lat] = extremo.punto;
+  return { datos: { ...datos, nodos: [...datos.nodos, { id: nodoNuevo, lon, lat, control: 'sin_senal' }] }, nodo: nodoNuevo };
+}
+
+function agregarViaNueva(datos, { id, puntos, extremos, atributos = {} }) {
+  if (!puntos || puntos.length < 2 || !extremos || extremos.length < 2) {
+    throw new Error('Una vía nueva necesita al menos dos puntos');
+  }
+  if (datos.vias.some((v) => v.id === id)) throw new Error(`Ya existe una vía con id ${id}`);
+
+  const inicio = resolverExtremo(datos, extremos[0], `n-${id}-0`);
+  const fin = resolverExtremo(inicio.datos, extremos[1], `n-${id}-1`);
+  if (inicio.nodo === fin.nodo) throw new Error('La vía empieza y termina en el mismo cruce');
+
+  const coordenada = (nodoId) => {
+    const n = fin.datos.nodos.find((x) => x.id === nodoId);
+    return [n.lon, n.lat];
+  };
+  const geometria = [coordenada(inicio.nodo), ...puntos.slice(1, -1), coordenada(fin.nodo)];
+  const sentido = atributos.sentido ?? 'ambos';
+  const via = {
+    id,
+    osmId: null,
+    nombre: atributos.nombre ?? 'Vía nueva',
+    desde: inicio.nodo,
+    hasta: fin.nodo,
+    geometria,
+    longitud: redondear(longitudLinea(geometria)),
+    tipo: tipoSegunSentido(atributos.tipo ?? 'doble_sentido', sentido),
+    sentido,
+    carrilesPorSentido: atributos.carrilesPorSentido ?? 1,
+    superficie: 'pavimento',
+    estado: 'bueno',
+    velocidadMax: atributos.velocidadMax ?? 30,
+    abierta: true,
+    enConstruccion: atributos.enConstruccion ?? false,
+    esPuente: atributos.esPuente ?? false,
+    nueva: true,
+  };
+  if (!(via.longitud > 0)) throw new Error('La vía nueva no tiene largo');
+  return { ...fin.datos, vias: [...fin.datos.vias, via] };
+}
 
 const APLICAR = {
   via: cambiarVia,
@@ -120,6 +190,7 @@ const APLICAR = {
   cruce: cambiarCruce,
   terminarObra,
   dobleCalzada,
+  viaNueva: agregarViaNueva,
 };
 
 export function aplicarCambio(datos, cambio) {
@@ -132,4 +203,3 @@ export function aplicarCambios(datos, cambios) {
   return cambios.reduce(aplicarCambio, datos);
 }
 
-export const _internos = { longitudLinea, proyectarEnLinea, distanciaMetros, redondear, exigirVia, DISTANCIA_EXTREMO };
