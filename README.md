@@ -23,6 +23,15 @@ Abre la dirección que muestra la terminal (normalmente http://localhost:5173).
 El modelo no está calibrado con aforos: sirve para comparar escenarios entre sí,
 no para predecir tiempos exactos.
 
+### Editar la red
+
+- **Clic en una vía**: cerrarla o abrirla, cambiar sentido, estado, superficie, velocidad y carriles.
+- **Clic en un cruce** (punto gris): pare, prioridad, sin señal o semáforo.
+- **＋ Vía o puente nuevo**: marca el trazado en el mapa. Si cruza el río, queda como puente.
+- **Variante**: traza los tramos que faltan hasta la Avenida y dale "Terminar la Variante".
+  Con la restricción activa, los pesados de paso dejan de cruzar el centro.
+- **Deshacer / Rehacer** con los botones o Ctrl+Z / Ctrl+Y. Los cambios se guardan en el navegador.
+
 ## Otros comandos
 
 - `npm test` — pruebas del motor de simulación

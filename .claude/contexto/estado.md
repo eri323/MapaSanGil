@@ -1,10 +1,16 @@
 # Estado del proyecto
 
-**Etapa actual:** 2 de 5 terminada — sigue la etapa 3 (editor), 1 – 9 nov 2026
-**Plan activo:** ninguno; falta escribir el de la etapa 3
+**Etapa actual:** 3 de 5 terminada — sigue la etapa 4 (escenarios, comparador, modo historia), 10 – 16 nov 2026
+**Plan activo:** ninguno; falta escribir el de la etapa 4
 **Rama base:** `main` (GitHub: eri323/MapaSanGil); trabajo en ramas que salen de `main`
 
 ## Hecho
+- Etapa 3 completa (rama `etapa-3`): editor en vivo — vías (cerrar, sentido, estado,
+  superficie, velocidad, carriles), cruces (pare por acceso, prioridad, sin señal, semáforo),
+  vías y puentes nuevos (detecta el Fonce), tramos de Variante, terminar obra, restricción de
+  pesados con casco de 1,3 km, doble calzada en Avenida/Variante, deshacer/rehacer con
+  autoguardado y aviso de partes aisladas. En el navegador: cerrar el Rojas Pinilla vuelve
+  el puente de la Calle 15 el cuello de botella (demora 49 s → 1 min 26 s).
 - Etapa 2 completa (rama `etapa-2`): motor IDM + MOBIL + cruces (pare por acceso, prioridad,
   glorieta, derecha, cortesía) + rutas con tiempos medidos + demanda por flujos, en Web Worker;
   vehículos en el mapa, reloj, controles y métricas en vivo. 15 min de hora pico se simulan en
@@ -15,8 +21,8 @@
   sentido, puentes, pares y fichas de solo lectura.
 
 ## Sigue
-- Escribir el plan de la etapa 3 (editor de vías y cruces, terminar la Variante, restricción
-  de pesados de paso, vías y puentes nuevos).
+- Escribir el plan de la etapa 4 (escenarios con nombre, exportar/importar, comparador en
+  modo rápido con varias semillas, modo historia).
 
 ## Revisión de la etapa 1: resuelta (rama fix/hallazgos-etapa-1)
 - Velocidad 0 de OSM se ignora; validación de ids únicos, longitud, velocidad, carriles y
@@ -43,4 +49,5 @@
 - El área descargada incluye vías rurales (251 km de doble sentido).
 
 ## Bloqueos / pendientes del usuario
+- Trazar en el editor los tramos que faltan de la Variante (OSM solo trae 2 km con los extremos sueltos).
 - Lista de campo: vías con huecos, destapadas, sentidos únicos y pares reales.
