@@ -12,3 +12,5 @@
 - Repo conectado a GitHub (eri323/MapaSanGil); `main` es la base.
 - Hallazgos de la revisión resueltos con TDD (62 pruebas); puentes con nombre común.
 - Nombres de los 5 puentes confirmados por el usuario; spec corregido.
+- Etapa 2 completa: motor IDM + MOBIL + cruces + rutas + demanda en Web Worker; vehículos en el
+  mapa. 158 pruebas. Cerrar el Rojas Pinilla: demora 62 s → 85 s.
