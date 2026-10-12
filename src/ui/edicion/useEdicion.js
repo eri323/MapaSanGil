@@ -33,7 +33,11 @@ export function useEdicion(base) {
 
   useEffect(() => {
     if (!cargado) return;
-    try { localStorage.setItem(CLAVE, serializar(historial)); } catch { /* el navegador no deja guardar */ }
+    try {
+      localStorage.setItem(CLAVE, serializar(historial));
+    } catch {
+      setError('El navegador no dejó guardar tus cambios. Guárdalos como escenario y descárgalos (⬇) para no perderlos.');
+    }
   }, [historial, cargado]);
 
   const datos = useMemo(

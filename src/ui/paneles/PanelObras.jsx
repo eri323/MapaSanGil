@@ -1,5 +1,5 @@
 export default function PanelObras({
-  datos, variante, restriccion, onRestriccion, onCambio, onIniciarDibujo,
+  datos, variante, restriccion, onRestriccion, onCambio, onIniciarDibujo, onTerminarVariante,
   historial, puedeDeshacer, puedeRehacer, onDeshacer, onRehacer, onDescartar,
 }) {
   const todas = (tipo) => {
@@ -23,10 +23,7 @@ export default function PanelObras({
         type="button"
         className="principal ancho"
         disabled={variante.enObra.length === 0}
-        onClick={() => {
-          onCambio({ tipo: 'terminarObra', viaIds: variante.enObra }, 'Variante terminada');
-          onRestriccion(true);
-        }}
+        onClick={onTerminarVariante}
       >
         Terminar la Variante
       </button>
