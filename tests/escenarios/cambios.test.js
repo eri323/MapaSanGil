@@ -55,14 +55,23 @@ describe('invertir el sentido', () => {
     expect(v.geometria[0]).toEqual(viaDe(datos, 't1').geometria.at(-1));
   });
 
-  it('quita el pare de un acceso que ya no llega al cruce', () => {
+  it('conserva el pare al invertir la vía, y vuelve a aplicar al invertirla otra vez', () => {
     const datos = datosRedLinea();
     nodoDe(datos, 'n2').control = 'pare';
     nodoDe(datos, 'n2').accesosConPare = ['t1'];
-    const r = aplicarCambio(datos, { tipo: 'invertirVia', viaId: 't1' });
-    expect(nodoDe(r, 'n2').accesosConPare).toBeUndefined();
-    expect(nodoDe(r, 'n2').control).toBe('pare');
-    expect(validarRed(r)).toEqual([]);
+    const una = aplicarCambio(datos, { tipo: 'invertirVia', viaId: 't1' });
+    expect(nodoDe(una, 'n2').accesosConPare).toEqual(['t1']);
+    expect(validarRed(una)).toEqual([]);
+    const dos = aplicarCambio(una, { tipo: 'invertirVia', viaId: 't1' });
+    expect(nodoDe(dos, 'n2').accesosConPare).toEqual(['t1']);
+  });
+
+  it('quita el pare de una vía que ya no toca el cruce', () => {
+    const datos = datosRedLinea();
+    nodoDe(datos, 'n2').control = 'pare';
+    nodoDe(datos, 'n2').accesosConPare = ['t1', 't0'];
+    const r = aplicarCambio(datos, { tipo: 'via', viaId: 't1', propiedades: { estado: 'regular' } });
+    expect(nodoDe(r, 'n2').accesosConPare).toEqual(['t1']);
   });
 });
 

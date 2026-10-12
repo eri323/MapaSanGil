@@ -106,9 +106,11 @@ describe('validarRed · ids únicos y valores físicos', () => {
     expect(errores).toContain('mismo nodo');
   });
 
-  it('accesosConPare debe nombrar vías que llegan a ese nodo', () => {
+  it('accesosConPare debe nombrar vías que tocan ese nodo', () => {
     const d = datos();
     d.nodos[1].accesosConPare = ['ab'];
+    expect(validarRed(d)).toEqual([]);
+    d.nodos[0].accesosConPare = ['ab']; // a es el inicio de ab: la toca aunque no llegue
     expect(validarRed(d)).toEqual([]);
     d.nodos[1].accesosConPare = ['zzz'];
     expect(validarRed(d).join('\n')).toContain('zzz');
