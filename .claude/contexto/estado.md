@@ -1,6 +1,7 @@
 # Estado del proyecto
 
-**Etapa actual:** 5 de 5 terminada — proyecto listo para la demo (falta solo publicar en Vercel)
+**Etapa actual:** 5 de 5 terminada — proyecto listo para la demo
+**En línea:** https://mapa-san-gil.vercel.app (Vercel, proyecto `mapa-san-gil`; cada push a `main` publica)
 **Plan activo:** ninguno
 **Rama base:** `main` (GitHub: eri323/MapaSanGil); trabajo en ramas que salen de `main`
 
@@ -30,8 +31,8 @@
   sentido, puentes, pares y fichas de solo lectura.
 
 ## Sigue
-- Publicar en Vercel: importar `eri323/MapaSanGil` en https://vercel.com/new (la conexión de Claude
-  no tiene permiso para crear proyectos: 403). Luego verificar el link y anotarlo en el README.
+- Antes de la demo: abrir la historia "Cómo mejora San Gil" en el navegador de la presentación para
+  recalcular la comparación (cambió con el arreglo de pesados).
 - Ensayar la demo con `docs/guia-demo.md`; cargar la lista real de vías con huecos cuando esté.
 
 ## Revisión de la etapa 1: resuelta (rama fix/hallazgos-etapa-1)

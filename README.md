@@ -1,5 +1,7 @@
 # Simulador de tráfico · San Gil
 
+**En línea:** https://mapa-san-gil.vercel.app
+
 Mapa de San Gil (Santander) con tráfico simulado. Permite editar la red vial
 para comparar cómo mejora o empeora el tráfico con distintos cambios.
 

@@ -26,3 +26,4 @@
   falta importarlo desde vercel.com/new.
 - Camiones y buses nacionales ahora siempre por Avenida y Variante (antes tomaban atajos sin la restricción). 290 pruebas. Merge a `main`.
 - La comparación de la historia guardada en el navegador quedó vieja: recalcularla antes de la demo.
+- Publicado en Vercel por el usuario: https://mapa-san-gil.vercel.app. Verificado: carga red y ríos, simula, abre Cómo funciona, sin errores de consola.
