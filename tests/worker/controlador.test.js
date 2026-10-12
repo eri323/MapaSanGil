@@ -87,3 +87,24 @@ describe('crearControlador · edición en vivo', () => {
     expect(enviados).toEqual([]);
   });
 });
+
+describe('crearControlador · error dentro de un paso', () => {
+  it('avisa el error y pausa en vez de repetirlo en cada tick', () => {
+    const enviados = [];
+    const motorQueFalla = () => ({
+      dt: 0.5, t: 0,
+      paso: () => { throw new Error('falla interna'); },
+      posiciones: () => ({ cantidad: 0, datos: new Float64Array(0) }),
+      resumen: () => ({}),
+      estadoVias: () => [],
+    });
+    const c = crearControlador((m) => enviados.push(m), { ahora: () => 0, presupuestoMs: 35, crearMotorFn: motorQueFalla });
+    c.recibir({ tipo: 'iniciar', datosRed: datosRedLinea(), opciones: {} });
+    c.recibir({ tipo: 'reloj', corriendo: true, velocidad: 20 });
+    c.tick(50);
+    c.tick(50);
+    const errores = enviados.filter((m) => m.tipo === 'error');
+    expect(errores).toHaveLength(1);
+    expect(errores[0].mensaje).toMatch(/falla interna/);
+  });
+});

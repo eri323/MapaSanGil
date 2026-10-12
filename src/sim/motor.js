@@ -21,6 +21,8 @@ const DISTANCIA_SIN_CAMBIO = 15; // m antes del cruce en que ya no se cambia de 
 const ANCHO_CARRIL = 3.2;
 const DISTANCIA_LLEGADA = 40; // m: un vehículo con permiso a esta distancia ya "viene entrando"
 
+export const VALORES_POR_DEFECTO = { dt: 0.5, umbralBloqueo: 180, intervaloReruteo: 90 };
+
 function insertarOrdenado(lista, veh) {
   const k = lista.findIndex((otro) => otro.s < veh.s);
   if (k === -1) lista.push(veh);
@@ -29,7 +31,8 @@ function insertarOrdenado(lista, veh) {
 
 export function crearMotor(redInicial, opciones = {}) {
   const {
-    semilla = 1, dt = 0.5, umbralBloqueo = 180, intervaloReruteo = 90,
+    semilla = 1, dt = VALORES_POR_DEFECTO.dt, umbralBloqueo = VALORES_POR_DEFECTO.umbralBloqueo,
+    intervaloReruteo = VALORES_POR_DEFECTO.intervaloReruteo,
     demanda: configDemanda = {}, conDemanda = true, zonas = ZONAS, salidas = SALIDAS,
     alCruzar = null, alTerminar = null, casco = CASCO_URBANO, restriccionPesados = false,
   } = opciones;
@@ -147,7 +150,12 @@ export function crearMotor(redInicial, opciones = {}) {
           if (!ult || ult.s - ult.perfil.largo >= veh.perfil.s0 + 1) { carril = c; break; }
         }
       }
-      if (carril === -1) { restantes.push(veh); continue; }
+      if (carril === -1) {
+        // Quien no logra entrar en mucho tiempo (vía cerrada o llena) cuenta como bloqueo.
+        if (t - veh.tSalida > umbralBloqueo) metricas.bloqueo();
+        else restantes.push(veh);
+        continue;
+      }
       const ult = e.carriles[carril].at(-1);
       veh.carril = carril;
       veh.s = 0;

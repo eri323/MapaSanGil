@@ -174,6 +174,7 @@ export default function App() {
         setCongestion(new Map(mensaje.vias.map((x) => [x.viaId, x.ratio])));
       } else if (mensaje.tipo === 'error') {
         edicion.mostrarError(`La simulación reportó un error: ${mensaje.mensaje}`);
+        setCorriendo(false); // el worker se pausa ante un error
       }
     });
     c.iniciar(datos, { semilla: 1, demanda: config, restriccionPesados: restriccion });
