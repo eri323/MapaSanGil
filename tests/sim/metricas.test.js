@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { crearMetricas } from '../../src/sim/metricas.js';
 
 describe('crearMetricas', () => {
-  it('sin viajes todo es cero', () => {
+  it('sin viajes no hay promedios', () => {
     expect(crearMetricas().resumen()).toEqual({
       viajesCompletados: 0, viajesImposibles: 0, bloqueos: 0, retirados: 0,
-      tiempoMedio: 0, demoraMedia: 0, demoraTotalVh: 0, demoraReciente: 0, tiempoReciente: 0, porTipo: {},
+      tiempoMedio: null, demoraMedia: null, demoraTotalVh: 0, demoraReciente: null, tiempoReciente: null, porTipo: {},
     });
   });
 

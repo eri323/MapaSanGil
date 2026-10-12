@@ -11,7 +11,10 @@ export default function ResultadosComparacion({ comparacion, red, onCerrar, onVe
   const [referencia] = resultados;
   const datosGrafica = referencia.serie.map((p, i) => {
     const fila = { minuto: Math.round(p.t / 60) };
-    for (const r of resultados) fila[r.nombre] = Math.round(r.serie[i]?.demoraReciente ?? 0);
+    for (const r of resultados) {
+      const v = r.serie[i]?.demoraReciente;
+      fila[r.nombre] = Number.isFinite(v) ? Math.round(v) : null;
+    }
     return fila;
   });
 

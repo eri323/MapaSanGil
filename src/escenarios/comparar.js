@@ -11,7 +11,14 @@ export const METRICAS_COMPARADAS = [
 ];
 const MUESTREO = 60; // s
 
-const promedio = (valores) => (valores.length ? valores.reduce((s, x) => s + x, 0) / valores.length : 0);
+// Promedio, mínimo y máximo de los valores con dato; null si ninguno tiene.
+const conDato = (valores) => valores.filter((x) => Number.isFinite(x));
+const promedio = (valores) => {
+  const v = conDato(valores);
+  return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null;
+};
+const minimo = (valores) => (conDato(valores).length ? Math.min(...conDato(valores)) : null);
+const maximo = (valores) => (conDato(valores).length ? Math.max(...conDato(valores)) : null);
 
 export function correrEscenario(base, escenario, { semilla = 1, duracion = 1800, datos } = {}) {
   const red = crearRed(datos ?? aplicarEscenario(base, escenario));
@@ -47,12 +54,12 @@ export function resumirCorridas(nombre, corridas, datos = { vias: [] }) {
   const metricas = {};
   for (const clave of METRICAS_COMPARADAS) {
     const valores = corridas.map((c) => c.resumen[clave]);
-    metricas[clave] = { media: promedio(valores), min: Math.min(...valores), max: Math.max(...valores) };
+    metricas[clave] = { media: promedio(valores), min: minimo(valores), max: maximo(valores) };
   }
   const serie = corridas[0].serie.map((punto, i) => ({
     t: punto.t,
-    demoraReciente: promedio(corridas.map((c) => c.serie[i]?.demoraReciente ?? 0)),
-    enRed: promedio(corridas.map((c) => c.serie[i]?.enRed ?? 0)),
+    demoraReciente: promedio(corridas.map((c) => c.serie[i]?.demoraReciente)),
+    enRed: promedio(corridas.map((c) => c.serie[i]?.enRed)),
   }));
   const sumas = new Map();
   for (const c of corridas) {
