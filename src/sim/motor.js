@@ -12,7 +12,9 @@ import { crearDemanda, prepararPuntos } from './demanda.js';
 import { crearMetricas } from './metricas.js';
 import { arcoTransitable } from './red.js';
 import { ZONAS, SALIDAS, CASCO_URBANO } from '../escenarios/zonas.js';
-import { arcosEnCasco, FLUJOS_RESTRINGIBLES, permitidoRestringido } from './restriccion.js';
+import {
+  arcosEnCasco, FLUJOS_RESTRINGIBLES, permitidoRestringido, TIPOS_SOLO_AVENIDA, RADIO_TERMINAL, permitidoPesado,
+} from './restriccion.js';
 
 const DISTANCIA_DECISION = 60; // m: la vía con prioridad confirma el paso desde aquí
 const DISTANCIA_SEMAFORO = 30; // m: se mira el color del semáforo desde aquí
@@ -35,6 +37,7 @@ export function crearMotor(redInicial, opciones = {}) {
     intervaloReruteo = VALORES_POR_DEFECTO.intervaloReruteo,
     demanda: configDemanda = {}, conDemanda = true, zonas = ZONAS, salidas = SALIDAS,
     alCruzar = null, alTerminar = null, casco = CASCO_URBANO, restriccionPesados = false,
+    terminal = { lon: ZONAS.terminal.lon, lat: ZONAS.terminal.lat, radio: RADIO_TERMINAL },
   } = opciones;
 
   const aleatorio = crearAleatorio(semilla);
@@ -43,6 +46,7 @@ export function crearMotor(redInicial, opciones = {}) {
   let geometria;
   let accesos;
   let cascoArcos;
+  let terminalArcos;
   let estadoArco;
 
   // Todo lo que depende de la forma de la red. Cada arco guarda sus carriles;
@@ -51,6 +55,7 @@ export function crearMotor(redInicial, opciones = {}) {
     geometria = prepararGeometria(red);
     accesos = analizarAccesos(red, geometria);
     cascoArcos = arcosEnCasco(red, geometria, casco);
+    terminalArcos = arcosEnCasco(red, geometria, terminal);
     estadoArco = new Map();
     for (const [arcoId, geo] of geometria) {
       const via = red.vias.get(red.arcos.get(arcoId).viaId);
@@ -78,6 +83,8 @@ export function crearMotor(redInicial, opciones = {}) {
 
   const costo = (arcoId) => (arcoTransitable(red, arcoId) ? tiempos.estimado(arcoId) : Infinity);
   const costoRestringido = (arcoId) => (permitidoRestringido(red, cascoArcos, arcoId) ? tiempos.estimado(arcoId) : Infinity);
+  const SIN_EXCEPCIONES = new Set();
+  const costoPesado = (excepciones) => (arcoId) => (permitidoPesado(red, excepciones, arcoId) ? tiempos.estimado(arcoId) : Infinity);
 
   // Con la restricción activa, los pesados de paso solo usan Avenida y Variante
   // por fuera del casco; si así no llegan (la Variante no conecta), pasan por
@@ -85,6 +92,14 @@ export function crearMotor(redInicial, opciones = {}) {
   function rutaPara(veh, origen) {
     if (restriccion && veh.restringible) {
       const ruta = rutaMasRapida(red, origen, veh.destino, costoRestringido);
+      if (ruta) return ruta;
+    }
+    // Camiones y buses nacionales: siempre por Avenida y Variante; si una obra
+    // o un cierre lo impide, se desvían por donde puedan.
+    if (TIPOS_SOLO_AVENIDA.has(veh.tipo)) {
+      // Solo los buses que van a la Terminal o salen de ella usan sus calles.
+      const excepciones = veh.flujo === 'busNacional' ? terminalArcos : SIN_EXCEPCIONES;
+      const ruta = rutaMasRapida(red, origen, veh.destino, costoPesado(excepciones));
       if (ruta) return ruta;
     }
     return rutaMasRapida(red, origen, veh.destino, costo);
@@ -116,7 +131,7 @@ export function crearMotor(redInicial, opciones = {}) {
 
   function agregarVehiculo({ tipo, origen, destino, conductor, flujo = 'local' }) {
     const restringible = FLUJOS_RESTRINGIBLES.has(flujo);
-    const ruta = rutaPara({ restringible, destino }, origen);
+    const ruta = rutaPara({ tipo, flujo, restringible, destino }, origen);
     if (!ruta || ruta.arcos.length === 0) {
       metricas.viajeImposible();
       return null;

@@ -40,3 +40,4 @@
 | 2026-10-12 | Sin viajes completados, tiempos y demoras quedan sin dato (—) | Un 0 o un −100 % engañarían en la comparación |
 | 2026-10-12 | El pare anotado en una vía se conserva mientras la vía toque el cruce | Invertir dos veces no debe perder el pare |
 | 2026-10-12 | Publicación en Vercel enlazada a GitHub: cada push a main publica | Spec §12 |
+| 2026-10-12 | Camiones, tractomulas y buses nacionales andan siempre por Avenida y Variante; los buses que van a la Terminal usan sus calles (200 m); si un cierre lo impide, se desvían | Dato de campo del usuario; antes solo pasaba con la restricción activa |
