@@ -24,3 +24,5 @@
 - Etapa 5 completa: Cómo funciona, ajustes de la revisión, build en partes, guía de la demo.
   287 pruebas. Merge a `main` y push. Vercel: la conexión de Claude no pudo crear el proyecto (403);
   falta importarlo desde vercel.com/new.
+- Camiones y buses nacionales ahora siempre por Avenida y Variante (antes tomaban atajos sin la restricción). 290 pruebas. Merge a `main`.
+- La comparación de la historia guardada en el navegador quedó vieja: recalcularla antes de la demo.
