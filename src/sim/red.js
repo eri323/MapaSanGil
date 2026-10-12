@@ -29,9 +29,11 @@ export function validarRed(datos) {
   for (const id of repetidos(datos.vias)) errores.push(`Vía ${id}: id repetido`);
 
   const ids = new Set(datos.nodos.map((n) => n.id));
-  const llegadas = new Map(); // nodoId -> vías que pueden llegar a él
+  // Un pare puede quedar anotado en una vía que hoy no llega al cruce (por ejemplo,
+  // tras invertirla); solo actúa cuando llega. Basta con que la vía toque el nodo.
+  const llegadas = new Map(); // nodoId -> vías que tocan el nodo
   for (const v of datos.vias) {
-    for (const extremo of v.sentido === 'ambos' ? [v.desde, v.hasta] : [v.hasta]) {
+    for (const extremo of [v.desde, v.hasta]) {
       if (!llegadas.has(extremo)) llegadas.set(extremo, new Set());
       llegadas.get(extremo).add(v.id);
     }
@@ -41,7 +43,7 @@ export function validarRed(datos) {
     if (!CONTROLES.includes(n.control)) errores.push(`Nodo ${n.id}: control desconocido "${n.control}"`);
     for (const viaId of n.accesosConPare ?? []) {
       if (!llegadas.get(n.id)?.has(viaId)) {
-        errores.push(`Nodo ${n.id}: el pare apunta a la vía ${viaId}, que no llega a ese cruce`);
+        errores.push(`Nodo ${n.id}: el pare apunta a la vía ${viaId}, que no toca ese cruce`);
       }
     }
   }

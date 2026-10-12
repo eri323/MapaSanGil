@@ -75,7 +75,7 @@ export function rutaMasRapida(red, origen, destino, costoArco) {
   return { arcos, tiempo: distancia.get(destino) };
 }
 
-const PESO_NUEVA_MEDIDA = 0.3;
+export const PESO_NUEVA_MEDIDA = 0.3;
 
 export function crearTiempos(red, geometria, previos = new Map()) {
   const medido = new Map(previos);

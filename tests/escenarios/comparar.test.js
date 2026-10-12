@@ -86,3 +86,15 @@ describe('uso de puentes y Variante con la red de cada escenario', () => {
     expect(r.usoClave).toEqual({ puentes: 7, variante: 5 });
   });
 });
+
+describe('resumir corridas sin viajes completados', () => {
+  it('las duraciones quedan sin dato y la variación no se puede calcular', () => {
+    const vacia = { resumen: { viajesCompletados: 0, tiempoMedio: null, demoraMedia: null, demoraTotalVh: 0, bloqueos: 3, viajesImposibles: 9 }, serie: [{ t: 60, demoraReciente: null, enRed: 0 }], vias: new Map() };
+    const r = resumirCorridas('Todo cerrado', [vacia, vacia]);
+    expect(r.metricas.demoraMedia).toEqual({ media: null, min: null, max: null });
+    expect(r.metricas.bloqueos).toEqual({ media: 3, min: 3, max: 3 });
+    expect(r.serie[0].demoraReciente).toBeNull();
+    const ref = { metricas: { demoraMedia: { media: 40, min: 40, max: 40 } } };
+    expect(variacion(ref, r, 'demoraMedia')).toBeNull();
+  });
+});

@@ -105,3 +105,16 @@ describe('motor · demora reciente', () => {
     expect(r.demoraReciente).toBeCloseTo(r.demoraMedia, 6);
   });
 });
+
+describe('motor · vehículos que no pueden entrar', () => {
+  it('si su primera vía está cerrada, después del umbral cuenta como bloqueo y deja de esperar', () => {
+    const red = crearRed(datosRedLinea());
+    const motor = crearMotor(red, { conDemanda: false, umbralBloqueo: 10 });
+    motor.agregarVehiculo(carro('n0', 'n3'));
+    red.vias.get('t0').abierta = false; // se cierra cuando ya tenía ruta
+    motor.avanzar(5);
+    expect(motor.resumen().pendientes).toBe(1);
+    motor.avanzar(10);
+    expect(motor.resumen()).toMatchObject({ pendientes: 0, bloqueos: 1 });
+  });
+});

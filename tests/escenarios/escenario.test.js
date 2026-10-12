@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   crearEscenario, validarEscenario, aplicarEscenario, exportarEscenario, importarEscenario,
   nombreArchivo, leerEscenarios, guardarEscenario, borrarEscenario, DEMANDA_POR_DEFECTO,
+  nombreDisponible, nombreParaGuardar,
 } from '../../src/escenarios/escenario.js';
 import { datosRedLinea } from '../sim/redesPrueba.js';
 
@@ -77,5 +78,17 @@ describe('esEstadoConocido', () => {
   it('cambios propios que no son de ningún escenario sí se perderían', () => {
     expect(esEstadoConocido([cerrar('t2')], [e1])).toBe(false);
     expect(esEstadoConocido([cerrar('t1'), cerrar('t2')], [e1])).toBe(false);
+  });
+});
+
+describe('nombres de escenario', () => {
+  it('nombreDisponible agrega un número si el nombre ya existe', () => {
+    expect(nombreDisponible('A', ['B'])).toBe('A');
+    expect(nombreDisponible('A', ['A', 'A (2)'])).toBe('A (3)');
+  });
+
+  it('un precargado nunca se pisa; uno propio con el mismo nombre se reemplaza', () => {
+    expect(nombreParaGuardar('Temporada alta', ['Temporada alta'], [])).toBe('Temporada alta (2)');
+    expect(nombreParaGuardar('Mi prueba', ['Temporada alta'], ['Mi prueba'])).toBe('Mi prueba');
   });
 });

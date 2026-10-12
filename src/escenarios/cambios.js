@@ -91,11 +91,11 @@ function dobleCalzada(datos, { alcance, activa }) {
   };
 }
 
-// Quita de los pares por acceso las vías que ya no llegan a ese cruce.
+// Quita de los pares por acceso las vías que ya no tocan ese cruce.
 function limpiarPares(datos) {
   const llegan = new Map();
   for (const v of datos.vias) {
-    for (const n of v.sentido === 'ambos' ? [v.desde, v.hasta] : [v.hasta]) {
+    for (const n of [v.desde, v.hasta]) {
       if (!llegan.has(n)) llegan.set(n, new Set());
       llegan.get(n).add(v.id);
     }

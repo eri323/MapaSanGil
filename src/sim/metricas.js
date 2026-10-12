@@ -38,14 +38,14 @@ export function crearMetricas() {
         while (recientes.length && recientes[0].t < tActual - VENTANA_RECIENTE) recientes.shift();
       }
       const n = recientes.length;
-      const promedio = (campo) => (n ? recientes.reduce((s, x) => s + x[campo], 0) / n : 0);
+      const promedio = (campo) => (n ? recientes.reduce((s, x) => s + x[campo], 0) / n : null);
       return {
         viajesCompletados: completados,
         viajesImposibles: imposibles,
         bloqueos,
         retirados,
-        tiempoMedio: completados ? sumaDuracion / completados : 0,
-        demoraMedia: completados ? sumaDemora / completados : 0,
+        tiempoMedio: completados ? sumaDuracion / completados : null,
+        demoraMedia: completados ? sumaDemora / completados : null,
         demoraTotalVh: sumaDemora / 3600,
         demoraReciente: promedio('demora'),
         tiempoReciente: promedio('duracion'),

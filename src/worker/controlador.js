@@ -19,7 +19,7 @@ export function crearReloj() {
   };
 }
 
-export function crearControlador(enviar, { ahora = () => performance.now(), presupuestoMs = 35 } = {}) {
+export function crearControlador(enviar, { ahora = () => performance.now(), presupuestoMs = 35, crearMotorFn = crearMotor } = {}) {
   let motor = null;
   let corriendo = false;
   let velocidad = 1;
@@ -40,7 +40,7 @@ export function crearControlador(enviar, { ahora = () => performance.now(), pres
     recibir(mensaje) {
       try {
         if (mensaje.tipo === 'iniciar') {
-          motor = crearMotor(crearRed(mensaje.datosRed), mensaje.opciones);
+          motor = crearMotorFn(crearRed(mensaje.datosRed), mensaje.opciones);
           corriendo = false;
           reloj.reiniciar();
           enviarCuadro();
@@ -74,9 +74,16 @@ export function crearControlador(enviar, { ahora = () => performance.now(), pres
       if (!motor || !corriendo) return;
       const inicio = ahora();
       const n = reloj.pasos(velocidad, ms, motor.dt);
-      for (let k = 0; k < n; k++) {
-        motor.paso();
-        if (ahora() - inicio > presupuestoMs) break;
+      try {
+        for (let k = 0; k < n; k++) {
+          motor.paso();
+          if (ahora() - inicio > presupuestoMs) break;
+        }
+      } catch (err) {
+        // Se pausa para no repetir el mismo error 20 veces por segundo.
+        corriendo = false;
+        enviar({ tipo: 'error', mensaje: `La simulación se detuvo: ${err.message}` });
+        return;
       }
       enviarCuadro();
       if (ahora() - ultimoResumen >= 1000) enviarResumen();

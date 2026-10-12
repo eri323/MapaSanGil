@@ -94,3 +94,16 @@ export function esEstadoConocido(entradas, escenarios) {
   const firma = JSON.stringify(entradas.map((e) => e.cambio));
   return escenarios.some((e) => JSON.stringify(e.entradas.map((x) => x.cambio)) === firma);
 }
+
+export function nombreDisponible(nombre, existentes) {
+  if (!existentes.includes(nombre)) return nombre;
+  let k = 2;
+  while (existentes.includes(`${nombre} (${k})`)) k += 1;
+  return `${nombre} (${k})`;
+}
+
+// Un escenario propio con el mismo nombre se reemplaza; un precargado nunca.
+export function nombreParaGuardar(nombre, nombresPrecargados, nombresGuardados) {
+  if (!nombresPrecargados.includes(nombre)) return nombre;
+  return nombreDisponible(nombre, [...nombresPrecargados, ...nombresGuardados]);
+}

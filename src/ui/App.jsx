@@ -8,7 +8,7 @@ import { aplicarCambio } from '../escenarios/cambios.js';
 import { activos } from '../escenarios/historial.js';
 import {
   crearEscenario, exportarEscenario, importarEscenario, nombreArchivo,
-  leerEscenarios, guardarEscenario, borrarEscenario, CLAVE_ESCENARIOS, esEstadoConocido,
+  leerEscenarios, guardarEscenario, borrarEscenario, CLAVE_ESCENARIOS, esEstadoConocido, nombreParaGuardar,
 } from '../escenarios/escenario.js';
 import { construirPrecargados } from '../escenarios/precargados.js';
 import { diferenciasPorVia } from '../escenarios/comparar.js';
@@ -35,6 +35,7 @@ import ResultadosComparacion from './paneles/ResultadosComparacion.jsx';
 import PanelHistoria from './paneles/PanelHistoria.jsx';
 import BarraHistoria from './paneles/BarraHistoria.jsx';
 import Confirmacion from './paneles/Confirmacion.jsx';
+import ComoFunciona from './comoFunciona/ComoFunciona.jsx';
 import './estilos.css';
 
 const CONFIG_INICIAL = { factor: 1, temporada: 1, horaInicio: 7 };
@@ -106,6 +107,8 @@ export default function App() {
   const [progresoHistoria, setProgresoHistoria] = useState({ hechos: 0, total: 0 });
   const comparadorHistoria = useRef(null); // worker aparte para la comparación controlada de la historia
   const pedidoHistoria = useRef(null); // { nombre, clave } de la historia que se está calculando
+  const terminandoVariante = useRef(false); // la restricción se activa cuando la Variante de verdad quedó terminada
+  const [verComoFunciona, setVerComoFunciona] = useState(false);
   const cliente = useRef(null);
   const comparador = useRef(null);
   const datosEnviados = useRef(null);
@@ -130,7 +133,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    try { localStorage.setItem(CLAVE_ESCENARIOS, JSON.stringify(guardados)); } catch { /* sin almacenamiento */ }
+    try {
+      localStorage.setItem(CLAVE_ESCENARIOS, JSON.stringify(guardados));
+    } catch {
+      edicion.mostrarError('El navegador no dejó guardar tus escenarios. Descárgalos (⬇) para no perderlos.');
+    }
   }, [guardados]);
 
   // Worker del comparador: uno para toda la sesión.
@@ -174,6 +181,7 @@ export default function App() {
         setCongestion(new Map(mensaje.vias.map((x) => [x.viaId, x.ratio])));
       } else if (mensaje.tipo === 'error') {
         edicion.mostrarError(`La simulación reportó un error: ${mensaje.mensaje}`);
+        setCorriendo(false); // el worker se pausa ante un error
       }
     });
     c.iniciar(datos, { semilla: 1, demanda: config, restriccionPesados: restriccion });
@@ -192,6 +200,15 @@ export default function App() {
 
   useEffect(() => { cliente.current?.reloj(corriendo, velocidad); }, [corriendo, velocidad, reinicios]);
   useEffect(() => { cliente.current?.restriccion(restriccion); }, [restriccion]);
+
+  // "Terminar la Variante" activa la restricción solo si el cambio se aplicó
+  // (si quedó en confirmación y se canceló, o falló, no).
+  useEffect(() => {
+    if (terminandoVariante.current && variante && variante.enObra.length === 0) {
+      terminandoVariante.current = false;
+      setRestriccion(true);
+    }
+  }, [variante]);
 
   // Carga un escenario sobre la simulación en curso. La hora de inicio solo
   // cambia (y reinicia) si se pide, para no reiniciar en mitad de una historia.
@@ -251,6 +268,11 @@ export default function App() {
     setCorriendo(true);
   };
 
+  const terminarVariante = () => {
+    terminandoVariante.current = true;
+    edicion.aplicar({ tipo: 'terminarObra', viaIds: variante.enObra }, 'Variante terminada');
+  };
+
   const iniciarDibujo = (preset) => { setDibujo(crearDibujo(preset)); setModo('dibujar'); setSeleccion(null); };
   const cancelarDibujo = () => { setDibujo(null); setModo('ver'); };
   const terminarDibujo = () => {
@@ -268,6 +290,10 @@ export default function App() {
 
   useEffect(() => {
     const alPresionar = (e) => {
+      if (verComoFunciona) {
+        if (e.key === 'Escape') setVerComoFunciona(false);
+        return;
+      }
       if (escribiendo() || edicion.pendiente || confirmarDescartar) return;
       if (historia && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
         e.preventDefault();
@@ -326,14 +352,19 @@ export default function App() {
       <PanelEscenarios
         guardados={guardados}
         precargados={precargados?.escenarios ?? []}
-        onGuardar={(nombre) => setGuardados((l) => guardarEscenario(l, escenarioActual(nombre)))}
+        onGuardar={(nombre) => setGuardados((l) => guardarEscenario(l, escenarioActual(
+          nombreParaGuardar(nombre, (precargados?.escenarios ?? []).map((e) => e.nombre), l.map((e) => e.nombre)),
+        )))}
         onCargar={(e) => aplicarEscenarioEnVivo(e)}
         onBorrar={(nombre) => setGuardados((l) => borrarEscenario(l, nombre))}
         onExportar={(e) => descargarTexto(nombreArchivo(e), exportarEscenario(e))}
         onImportar={(texto) => {
           try {
             const e = importarEscenario(texto, base);
-            setGuardados((l) => guardarEscenario(l, e));
+            setGuardados((l) => guardarEscenario(l, {
+              ...e,
+              nombre: nombreParaGuardar(e.nombre, (precargados?.escenarios ?? []).map((x) => x.nombre), l.map((x) => x.nombre)),
+            }));
           } catch (err) {
             edicion.mostrarError(err.message);
           }
@@ -365,6 +396,7 @@ export default function App() {
         onRestriccion={setRestriccion}
         onCambio={edicion.aplicar}
         onIniciarDibujo={iniciarDibujo}
+        onTerminarVariante={terminarVariante}
         historial={edicion.historial}
         puedeDeshacer={edicion.puedeDeshacer}
         puedeRehacer={edicion.puedeRehacer}
@@ -379,6 +411,7 @@ export default function App() {
     <div className="app">
       <header className="barra">
         <h1>Simulador de tráfico · San Gil</h1>
+        <button type="button" className="enlace-ayuda" onClick={() => setVerComoFunciona(true)}>Cómo funciona</button>
         <BarraTiempo
           t={vehiculos.t}
           horaInicio={config.horaInicio}
@@ -436,7 +469,7 @@ export default function App() {
           {edicion.error && (
             <section className="panel aviso-error">
               <p>{edicion.error}</p>
-              <button type="button" onClick={edicion.limpiarError}>Entendido</button>
+              <button type="button" onClick={() => { terminandoVariante.current = false; edicion.limpiarError(); }}>Entendido</button>
             </section>
           )}
           {via && <FichaVia via={via} onCambio={edicion.aplicar} onCerrar={() => setSeleccion(null)} />}
@@ -456,7 +489,7 @@ export default function App() {
       </div>
 
       {edicion.pendiente && (
-        <Confirmacion titulo="Este cambio desconecta parte de la red" onConfirmar={edicion.confirmar} onCancelar={edicion.cancelar}>
+        <Confirmacion titulo="Este cambio desconecta parte de la red" onConfirmar={edicion.confirmar} onCancelar={() => { terminandoVariante.current = false; edicion.cancelar(); }}>
           {edicion.pendiente.impacto.aisladas.length > 0 && (
             <p>Quedarían sin ida y vuelta: <strong>{edicion.pendiente.impacto.aisladas.join(', ')}</strong>.</p>
           )}
@@ -474,6 +507,7 @@ export default function App() {
           <p>Se vuelve a la red de OpenStreetMap con las correcciones de campo. Esto no se puede deshacer.</p>
         </Confirmacion>
       )}
+      {verComoFunciona && <ComoFunciona red={red} onCerrar={() => setVerComoFunciona(false)} />}
     </div>
   );
 }

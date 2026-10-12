@@ -203,3 +203,33 @@ button.ancho { width: 100%; }
   .barra-historia { grid-template-columns: 1fr; }
   .historia-grafica { display: none; }
 }
+
+/* --- Etapa 5: Cómo funciona --- */
+
+.enlace-ayuda { margin-right: auto; margin-left: 12px; }
+
+.como-funciona {
+  position: fixed; inset: 0; z-index: 20; background: rgb(0 0 0 / 0.4);
+  display: flex; justify-content: center; padding: 24px 16px; overflow-y: auto;
+}
+.como-funciona-contenido {
+  background: var(--panel); border-radius: 12px; max-width: 860px; width: 100%;
+  padding: 20px 24px 32px; box-shadow: 0 12px 40px rgb(0 0 0 / 0.25); height: fit-content;
+}
+.como-funciona header { display: flex; justify-content: space-between; align-items: center; }
+.como-funciona header h1 { margin: 0; font-size: 22px; }
+.como-funciona header button { border: none; background: none; font-size: 26px; color: var(--tenue); cursor: pointer; }
+.como-funciona .indice { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 12px 0 8px; font-size: 13px; }
+.como-funciona section { border-top: 1px solid var(--borde); padding-top: 12px; margin-top: 16px; }
+.como-funciona h2 { font-size: 17px; margin: 0 0 8px; }
+.como-funciona p, .como-funciona li { font-size: 14px; line-height: 1.55; }
+.como-funciona .formula {
+  background: #f3f5f8; border-radius: 8px; padding: 10px 12px; font-size: 13px; overflow-x: auto; white-space: pre;
+}
+.como-funciona table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.como-funciona th, .como-funciona td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--borde); }
+
+@media (max-width: 640px) {
+  .como-funciona { padding: 0; }
+  .como-funciona-contenido { border-radius: 0; padding: 16px; }
+}

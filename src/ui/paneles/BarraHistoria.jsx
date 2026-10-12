@@ -29,7 +29,10 @@ export default function BarraHistoria({ historia, indice, controlado, progreso, 
       <div className="historia-grafica">
         {controlado ? (
           <>
-            <span>Demora media por paso ({Math.round(controlado.duracion / 60)} min simulados, {controlado.semillas.length} semillas)</span>
+            <span>
+              Demora media por paso ({Math.round(controlado.duracion / 60)} min simulados desde las{' '}
+              {String(historia.pasos[0].escenario.demanda.horaInicio).padStart(2, '0')}:00, {controlado.semillas.length} semillas)
+            </span>
             <ResponsiveContainer width="100%" height={110}>
               <BarChart data={datos} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                 <XAxis dataKey="paso" fontSize={11} />

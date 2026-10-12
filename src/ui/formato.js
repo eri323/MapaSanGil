@@ -28,6 +28,7 @@ export const ETIQUETA_METRICA = {
 const DURACIONES = new Set(['tiempoMedio', 'demoraMedia']);
 
 export function formatearMetrica(clave, valor) {
+  if (!Number.isFinite(valor)) return '—';
   if (DURACIONES.has(clave)) return formatearDuracion(valor);
   if (clave === 'demoraTotalVh') return `${valor.toFixed(1).replace('.', ',')} veh·h`;
   return String(Math.round(valor));
