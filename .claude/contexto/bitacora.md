@@ -19,3 +19,8 @@
   calzada, deshacer) aplicado en vivo. 234 pruebas.
 - Etapa 4 completa: escenarios, comparador (worker aparte, mapa de diferencias) y modo
   historia con comparación controlada. La historia se cumple: 67 → 90 → 82 → 57 → 57 s.
+
+## 2026-10-12
+- Etapa 5 completa: Cómo funciona, ajustes de la revisión, build en partes, guía de la demo.
+  287 pruebas. Merge a `main` y push. Vercel: la conexión de Claude no pudo crear el proyecto (403);
+  falta importarlo desde vercel.com/new.

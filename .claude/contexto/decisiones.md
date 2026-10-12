@@ -36,3 +36,7 @@
 | 2026-10-08 | Puente propuesto: ≤160 m entre orillas, ≥300 m de los puentes existentes, el más cercano al centro | Ubicación aproximada para la historia; el usuario puede cambiarla |
 | 2026-10-08 | Comparador en un worker aparte, misma duración y semillas 1..N, promedio y rango | Spec §7: "¿y si fue suerte?" sin congelar la simulación en vivo |
 | 2026-10-08 | La gráfica de la historia usa una comparación controlada de los pasos, no la demora en vivo | En vivo la demora sube con el tiempo (red llenándose, hora pico) y no muestra el efecto de cada cambio |
+| 2026-10-12 | "Cómo funciona" se arma desde las constantes del motor | La explicación no se desfasa del código |
+| 2026-10-12 | Sin viajes completados, tiempos y demoras quedan sin dato (—) | Un 0 o un −100 % engañarían en la comparación |
+| 2026-10-12 | El pare anotado en una vía se conserva mientras la vía toque el cruce | Invertir dos veces no debe perder el pare |
+| 2026-10-12 | Publicación en Vercel enlazada a GitHub: cada push a main publica | Spec §12 |

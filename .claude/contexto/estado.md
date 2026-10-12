@@ -1,10 +1,14 @@
 # Estado del proyecto
 
-**Etapa actual:** 4 de 5 terminada — sigue la etapa 5 (Cómo funciona, ajustes, Vercel), 17 – 22 nov 2026
-**Plan activo:** ninguno; falta escribir el de la etapa 5
+**Etapa actual:** 5 de 5 terminada — proyecto listo para la demo (falta solo publicar en Vercel)
+**Plan activo:** ninguno
 **Rama base:** `main` (GitHub: eri323/MapaSanGil); trabajo en ramas que salen de `main`
 
 ## Hecho
+- Etapa 5 completa (rama `etapa-5`, en `main`): pestaña "Cómo funciona" armada desde las constantes
+  del motor; vehículos que no pueden entrar cuentan como bloqueo; el worker se pausa ante un error;
+  sin viajes completados se muestra "—"; el pare sobrevive a invertir una vía; nombres de escenario
+  sin choques; build en partes; guía de la demo en `docs/guia-demo.md`. 287 pruebas.
 - Etapa 4 completa: escenarios (guardar/cargar/exportar/importar, precargados), comparador
   en worker aparte (promedio y rango, gráfica, mapa de diferencias) y modo historia.
   Historia "Cómo mejora" medida en condiciones controladas (30 min × 2 semillas):
@@ -26,7 +30,9 @@
   sentido, puentes, pares y fichas de solo lectura.
 
 ## Sigue
-- Escribir el plan de la etapa 5 (pestaña "Cómo funciona", ajustes, publicación en Vercel).
+- Publicar en Vercel: importar `eri323/MapaSanGil` en https://vercel.com/new (la conexión de Claude
+  no tiene permiso para crear proyectos: 403). Luego verificar el link y anotarlo en el README.
+- Ensayar la demo con `docs/guia-demo.md`; cargar la lista real de vías con huecos cuando esté.
 
 ## Revisión de la etapa 1: resuelta (rama fix/hallazgos-etapa-1)
 - Velocidad 0 de OSM se ignora; validación de ids únicos, longitud, velocidad, carriles y
